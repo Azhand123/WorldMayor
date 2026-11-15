@@ -1,0 +1,1590 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>World Mayor 2.3 | شهردار بزرگ</title>
+<!-- Official Supabase JS SDK v2 is loaded asynchronously by the game (see ensureSdk): first ./supabase.js next to this file
+     (optional self-hosting), then jsDelivr, then unpkg. It never blocks the page; without it the game runs on the local save. -->
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap');
+:root{
+ --bg:#080f22;--panel:rgba(18,27,53,.88);--ink:#f1f4ff;--muted:#b2bdd8;
+ --green:#36d6b0;--mint:rgba(54,214,176,.16);--line:rgba(145,166,230,.24);
+ --gold:#ffd978;--shadow:0 20px 55px rgba(0,0,0,.3)
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+ margin:0;min-height:100vh;overflow-x:hidden;color:var(--ink);
+ background:
+  radial-gradient(ellipse at 12% 8%,rgba(19,154,123,.24),transparent 34%),
+  radial-gradient(ellipse at 88% 22%,rgba(63,112,190,.22),transparent 32%),
+  radial-gradient(ellipse at 50% 100%,rgba(19,185,133,.13),transparent 38%),
+  linear-gradient(135deg,#071b25 0%,#102d38 52%,#0a202d 100%);
+ font-family:'Vazirmatn',Tahoma,Arial,sans-serif;
+}
+body:before,body:after{content:"";position:fixed;z-index:-1;pointer-events:none;border-radius:50%;filter:blur(2px);opacity:.55}
+body:before{width:340px;height:340px;top:12%;left:-120px;background:radial-gradient(circle,rgba(26,190,143,.22),transparent 70%);animation:driftA 16s ease-in-out infinite alternate}
+body:after{width:420px;height:420px;right:-160px;bottom:2%;background:radial-gradient(circle,rgba(75,133,210,.2),transparent 70%);animation:driftB 19s ease-in-out infinite alternate}
+@keyframes driftA{to{transform:translate(90px,65px) scale(1.18)}}
+@keyframes driftB{to{transform:translate(-80px,-55px) scale(1.12)}}
+button,input,select{font:inherit}
+button{border:1px solid rgba(255,255,255,.08);border-radius:13px;padding:11px 16px;background:linear-gradient(135deg,#20bd89,#11845f);color:white;font-weight:800;cursor:pointer;box-shadow:0 7px 18px rgba(13,157,108,.2);transition:transform .2s,box-shadow .2s,filter .2s}
+button:hover:not(:disabled){transform:translateY(-3px);box-shadow:0 12px 24px rgba(13,157,108,.28);filter:brightness(1.08)}
+button:active:not(:disabled){transform:translateY(-1px) scale(.985)}
+button:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.secondary{background:rgba(210,239,228,.12);color:var(--ink);border-color:var(--line);box-shadow:none}
+.danger{background:linear-gradient(135deg,#c65363,#923747)}
+.wrap{max-width:1160px;margin:auto;padding:24px 20px 16px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px;padding:13px 17px;border:1px solid var(--line);border-radius:18px;background:rgba(7,29,38,.64);backdrop-filter:blur(14px);box-shadow:var(--shadow)}
+.brand{font-size:24px;font-weight:900;letter-spacing:.4px;text-shadow:0 0 22px rgba(58,220,165,.25)}
+.tag{background:var(--mint);color:#74e3b9;padding:7px 12px;border:1px solid rgba(87,221,171,.22);border-radius:30px;font-size:12px;font-weight:700}
+.panel{background:linear-gradient(145deg,rgba(18,49,58,.94),rgba(10,34,44,.91));border:1px solid var(--line);border-radius:21px;padding:19px;box-shadow:var(--shadow);margin-bottom:16px;backdrop-filter:blur(12px);animation:panelIn .55s ease both}
+@keyframes panelIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.hero{position:relative;overflow:hidden;background:linear-gradient(115deg,rgba(13,102,77,.96),rgba(22,120,104,.88) 55%,rgba(35,83,125,.9));color:white;padding:30px;border:1px solid rgba(170,255,220,.2);border-radius:24px;margin-bottom:17px;box-shadow:0 20px 45px rgba(0,0,0,.2)}
+.hero:after{content:"🌆";position:absolute;left:25px;bottom:-22px;font-size:105px;opacity:.13;transform:rotate(-8deg);pointer-events:none}
+.hero h1{margin:0 0 8px;font-size:32px;font-weight:900;letter-spacing:-.5px}
+.muted{color:var(--muted);font-size:13px}
+.hero .muted{color:#d6f3e8}
+h2,h3{font-weight:800}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+.stat{background:linear-gradient(145deg,rgba(34,79,76,.62),rgba(15,47,54,.8));border:1px solid var(--line);padding:14px;border-radius:16px;transition:transform .2s,border-color .2s}
+.stat:hover{transform:translateY(-3px);border-color:rgba(90,225,174,.5)}
+.stat small{display:block;color:var(--muted);margin-bottom:7px}
+.stat b{font-size:22px;color:#f4fffa}
+.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.mode{padding:21px;text-align:right;background:linear-gradient(145deg,rgba(29,70,69,.8),rgba(13,43,52,.9));border:1px solid var(--line);border-radius:18px;color:var(--ink);box-shadow:none;min-height:150px}
+.mode strong{display:block;font-size:18px;margin:8px 0;color:#f3fff9}
+.mode span{font-size:13px;color:var(--muted);line-height:1.9}
+.mode:hover{border-color:rgba(83,224,170,.55);background:linear-gradient(145deg,rgba(33,91,77,.9),rgba(16,52,59,.95))}
+.map{background:linear-gradient(145deg,rgba(14,54,56,.95),rgba(13,43,55,.95));border-color:rgba(107,203,167,.28)}
+.maphead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+
+/* ===== City map (tile grid, v2.3 visuals) ===== */
+.citymap{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));grid-auto-rows:54px;gap:4px;
+ background:
+  radial-gradient(circle at 20% 15%,rgba(255,255,255,.08),transparent 40%),
+  linear-gradient(135deg,#1b665c,#2a806b);
+ padding:8px;border:1px solid rgba(190,255,215,.2);border-radius:15px;box-shadow:inset 0 0 25px rgba(0,0,0,.2)}
+.cell{position:relative;overflow:hidden;border-radius:8px;display:grid;place-items:center;font-size:23px;min-width:0;
+ border:1px solid rgba(0,0,0,.14);
+ box-shadow:0 2px 0 rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.28);
+ transition:transform .2s,filter .2s,box-shadow .2s}
+.cell:hover{transform:translateY(-2px) scale(1.07);filter:brightness(1.12);z-index:3;box-shadow:0 9px 16px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.35)}
+.cell.new{animation:tileAppear .5s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes tileAppear{from{opacity:.25;transform:scale(.7) translateY(-8px)}to{opacity:1;transform:scale(1)}}
+.cell .ico{position:relative;z-index:2;line-height:1;filter:drop-shadow(0 3px 2px rgba(0,0,0,.3));transition:transform .25s}
+.cell:hover .ico{transform:translateY(-2px) scale(1.08)}
+.cell .deco{position:absolute;z-index:1;font-size:11px;opacity:.85;bottom:3px;right:6px;pointer-events:none}
+
+/* terrain */
+.empty{background:
+  radial-gradient(circle at 24% 30%,rgba(255,255,255,.16) 0 2px,transparent 3px),
+  radial-gradient(circle at 72% 68%,rgba(0,60,20,.12) 0 2px,transparent 3px),
+  linear-gradient(145deg,#93d193,#6db577)}
+.empty.v1{background:
+  radial-gradient(circle at 60% 25%,rgba(255,255,255,.14) 0 2px,transparent 3px),
+  radial-gradient(circle at 30% 75%,rgba(0,60,20,.12) 0 2px,transparent 3px),
+  linear-gradient(145deg,#88c98a,#66ae72)}
+.empty.v2{background:
+  radial-gradient(circle at 40% 55%,rgba(255,255,255,.12) 0 2px,transparent 3px),
+  linear-gradient(145deg,#9bd89b,#74be7c)}
+
+/* roads with dashed lane markings */
+.road{background:linear-gradient(180deg,#646e79,#4a545f);border-color:rgba(0,0,0,.3);
+ box-shadow:inset 0 3px 0 #c9c4ae,inset 0 -3px 0 #c9c4ae,0 2px 0 rgba(0,0,0,.22)}
+.road:before{content:"";position:absolute;left:0;right:0;top:50%;height:3px;margin-top:-1.5px;
+ background:linear-gradient(90deg,transparent 0 12%,rgba(255,232,140,.9) 12% 42%,transparent 42% 58%,rgba(255,232,140,.9) 58% 88%,transparent 88%)}
+.road:hover{transform:none;filter:brightness(1.1)}
+.car{position:absolute;z-index:3;font-size:14px;top:7px;line-height:1;filter:drop-shadow(0 2px 1px rgba(0,0,0,.4));animation:drive 5s ease-in-out infinite alternate}
+.car.c2{top:auto;bottom:6px;animation-duration:6.5s;animation-direction:alternate-reverse}
+@keyframes drive{from{transform:translateX(-16px)}to{transform:translateX(16px)}}
+
+/* residential */
+.building{background:linear-gradient(145deg,#fff0c4,#f2dba7)}
+.home{background:linear-gradient(165deg,#ffeccb,#f1cf98)}
+.home:before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:repeating-linear-gradient(90deg,#d4694c 0 9px,#bd5a42 9px 18px)}
+.home.v1:before{background:repeating-linear-gradient(90deg,#b4584a 0 9px,#9d4a3f 9px 18px)}
+.home.v2:before{background:repeating-linear-gradient(90deg,#c98448 0 9px,#b27240 9px 18px)}
+.home:after{content:"";position:absolute;bottom:5px;left:7px;width:5px;height:5px;border-radius:1px;background:#ffd24a;box-shadow:9px 0 #ffd24a;animation:glow 3.2s ease-in-out infinite alternate}
+@keyframes glow{from{opacity:.35}to{opacity:1}}
+/* factory */
+.factory{background:linear-gradient(165deg,#d3dae0,#97a4b0)}
+.factory:before{content:"";position:absolute;left:0;right:0;bottom:0;height:7px;background:repeating-linear-gradient(90deg,#6d7b88 0 8px,#8493a0 8px 16px)}
+.factory:after{content:"";position:absolute;top:6px;right:11px;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.75);animation:smoke 3.2s ease-in infinite}
+@keyframes smoke{0%{transform:translate(0,6px) scale(.5);opacity:.9}100%{transform:translate(-6px,-8px) scale(1.5);opacity:0}}
+/* power plant */
+.plant{background:linear-gradient(165deg,#fff3b0,#efc543);animation:plantGlow 2.6s ease-in-out infinite alternate}
+.plant:before{content:"";position:absolute;left:0;right:0;bottom:0;height:7px;background:repeating-linear-gradient(135deg,#3b3f46 0 6px,#f4c431 6px 12px)}
+@keyframes plantGlow{from{box-shadow:0 2px 0 rgba(0,0,0,.22),inset 0 0 6px rgba(255,214,70,.2)}to{box-shadow:0 2px 0 rgba(0,0,0,.22),inset 0 0 16px rgba(255,238,140,.75)}}
+/* shopping center */
+.landmark{background:linear-gradient(165deg,#d6ebff,#8fc0ea)}
+.shop:before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:repeating-linear-gradient(90deg,#e0566a 0 8px,#ffffff 8px 16px)}
+.shop:after{content:"";position:absolute;bottom:4px;left:50%;width:14px;height:3px;margin-left:-7px;border-radius:2px;background:rgba(255,255,255,.8)}
+/* park */
+.park{background:
+  radial-gradient(circle at 18% 82%,#7cc7ee 0 6px,transparent 7px),
+  radial-gradient(circle at 30% 28%,#92e290,#3f9f5f)}
+.park:after{content:"";position:absolute;right:6px;bottom:4px;width:12px;height:3px;border-radius:2px;background:rgba(236,221,178,.85)}
+
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:9px}
+.columns{display:grid;grid-template-columns:1.2fr .8fr;gap:15px;align-items:start}
+.buildings{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.build{border:1px solid var(--line);border-radius:15px;padding:13px;background:rgba(19,55,60,.55);transition:transform .2s,border-color .2s}
+.build:hover{transform:translateY(-3px);border-color:rgba(87,221,171,.45)}
+.build .emoji{font-size:27px;filter:drop-shadow(0 4px 5px rgba(0,0,0,.18))}
+.build h3{font-size:14px;margin:5px 0;color:#eafff4}
+.build p{font-size:12px;color:var(--muted);min-height:34px;margin:4px 0 10px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.notice{background:rgba(18,73,66,.45);border:1px solid var(--line);border-radius:13px;padding:12px;font-size:13px;line-height:1.9;color:#d9f3e8}
+#report{white-space:pre-line}
+.world{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.country{padding:12px;background:rgba(22,64,61,.6);border:1px solid var(--line);border-radius:12px}
+.hidden{display:none!important}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+input,select{border:1px solid var(--line);border-radius:11px;padding:12px;background:rgba(4,25,34,.75);color:var(--ink);width:100%;margin:7px 0}
+input::placeholder{color:#78958d}
+hr{border-color:var(--line)!important}
+
+/* ===== Citizen status ===== */
+.sidecol>.panel:last-child{margin-bottom:16px}
+.needhead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.needhead h2{margin:0;font-size:18px}
+.need{padding:11px 13px;border:1px solid var(--line);border-radius:14px;background:rgba(19,55,60,.5);margin-bottom:9px;transition:border-color .3s,transform .2s}
+.need:hover{transform:translateY(-2px)}
+.need.s-good{border-color:rgba(87,221,171,.32)}
+.need.s-ok{border-color:rgba(255,200,100,.35)}
+.need.s-bad{border-color:rgba(255,120,135,.45)}
+.nh{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:800;font-size:14px}
+.nh .nm{display:flex;align-items:center;gap:7px}
+.nh .pct{margin-inline-start:auto;font-size:15px;color:#f4fffa}
+.chip{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:800;border:1px solid;white-space:nowrap}
+.chip.good{color:#7dffc4;background:rgba(25,185,133,.16);border-color:rgba(87,221,171,.35)}
+.chip.ok{color:#ffd98a;background:rgba(255,170,50,.15);border-color:rgba(255,200,100,.38)}
+.chip.bad{color:#ff9aa6;background:rgba(220,70,90,.17);border-color:rgba(255,120,135,.4)}
+.bar{height:10px;border-radius:99px;background:rgba(0,0,0,.3);overflow:hidden;margin:9px 0 6px;box-shadow:inset 0 1px 3px rgba(0,0,0,.4)}
+.fill{height:100%;width:0;border-radius:99px;transition:width .7s cubic-bezier(.2,.8,.2,1),background .4s}
+.fill.good{background:linear-gradient(270deg,#19b985,#6ff0b6)}
+.fill.ok{background:linear-gradient(270deg,#f2a93b,#ffd86a)}
+.fill.bad{background:linear-gradient(270deg,#d24558,#ff7f8e)}
+.ndetail{font-size:12px;color:var(--muted)}
+.outlook{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px;font-size:13px}
+/* ===== Account & cloud save ===== */
+.chip.idle{color:#c9d9d4;background:rgba(200,220,215,.1);border-color:rgba(200,220,215,.25)}
+.acc label{display:block;font-size:13px;color:var(--muted);margin-top:6px}
+.acc input[dir=ltr]{text-align:left}
+.accmsg{margin-top:10px;min-height:44px;transition:border-color .3s,background .3s}
+.accmsg.ok{border-color:rgba(87,221,171,.5)}
+.accmsg.err{border-color:rgba(255,120,135,.55);background:rgba(120,35,50,.28);color:#ffd5da}
+.accmsg.info{border-color:rgba(255,200,100,.4)}
+.syncrow{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:12px}
+.cloudbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:12px 16px}
+.cloudbar .grp{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cloudbar button{padding:8px 13px;font-size:13px}
+.js-msg{font-size:12px;color:var(--muted);white-space:pre-line;line-height:1.9}
+.modal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:rgba(2,12,18,.72);backdrop-filter:blur(6px)}
+.modal-card{width:min(520px,100%);max-height:92vh;overflow:auto;background:linear-gradient(145deg,rgba(18,49,58,.99),rgba(10,34,44,.99));border:1px solid var(--line);border-radius:21px;padding:20px;box-shadow:0 24px 60px rgba(0,0,0,.5);animation:panelIn .3s ease both}
+.modal-card h3{margin:0 0 10px;font-size:18px}
+.mcmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.mcol{border:1px solid var(--line);border-radius:14px;padding:11px;background:rgba(19,55,60,.5);font-size:13px;line-height:1.9}
+.mcol b{display:block;margin-bottom:3px}
+#mActions{display:flex;flex-direction:column;gap:8px}
+#mActions button{width:100%}
+@media(max-width:700px){.mcmp{grid-template-columns:1fr}.cloudbar{padding:10px 12px}}
+.footer{font-size:11px;color:var(--muted);text-align:center;padding:13px 10px 5px}
+.brand-footer{font-size:13px;font-weight:900;letter-spacing:1.8px;color:#8ce8c1;text-align:center;padding:9px 10px 20px;text-shadow:0 0 18px rgba(64,220,163,.28)}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.menu{grid-template-columns:1fr}.columns{grid-template-columns:1fr}.citymap{grid-auto-rows:40px;gap:3px}.cell{font-size:18px}.cell .deco{font-size:9px}.car{font-size:11px;top:4px}.wrap{padding:12px}.hero{padding:23px}.hero h1{font-size:25px}.brand{font-size:20px}.buildings{gap:8px}.build{padding:10px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition:none!important}}
+
+
+/* ===== Modern visual refresh (CSS only; gameplay and data logic unchanged) ===== */
+body{
+ background:
+  radial-gradient(ellipse at 10% 4%,rgba(42,214,177,.22),transparent 34%),
+  radial-gradient(ellipse at 92% 14%,rgba(112,104,255,.24),transparent 34%),
+  radial-gradient(ellipse at 48% 100%,rgba(255,112,160,.12),transparent 42%),
+  linear-gradient(135deg,#080f22 0%,#121b38 52%,#10152c 100%);
+}
+.top,.panel,.modal-card{
+ border-color:rgba(158,177,255,.22);
+ box-shadow:0 18px 48px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.035);
+}
+.top{background:rgba(12,19,42,.72);border-radius:20px}
+.brand{text-shadow:0 0 24px rgba(54,214,176,.32)}
+.tag{background:linear-gradient(120deg,rgba(54,214,176,.18),rgba(121,113,255,.18));color:#a7ffe0;border-color:rgba(118,222,220,.3)}
+.panel{
+ background:linear-gradient(145deg,rgba(27,38,73,.94),rgba(15,23,49,.93));
+}
+.hero{
+ background:linear-gradient(115deg,rgba(20,143,116,.96),rgba(48,112,181,.93) 56%,rgba(112,79,190,.92));
+ border-color:rgba(190,220,255,.26);
+ box-shadow:0 22px 55px rgba(4,10,30,.34);
+}
+.stat{
+ background:linear-gradient(145deg,rgba(42,69,112,.62),rgba(25,38,75,.82));
+ border-color:rgba(135,164,245,.25);
+}
+.stat:nth-child(2){background:linear-gradient(145deg,rgba(22,112,112,.55),rgba(20,55,83,.82))}
+.stat:nth-child(3){background:linear-gradient(145deg,rgba(125,75,145,.45),rgba(43,40,87,.82))}
+.stat:nth-child(4){background:linear-gradient(145deg,rgba(151,105,48,.42),rgba(61,48,78,.82))}
+.stat b{ text-shadow:0 0 18px rgba(157,205,255,.16) }
+.mode,.build{
+ background:linear-gradient(145deg,rgba(39,58,103,.78),rgba(20,34,68,.92));
+ border-color:rgba(145,166,230,.24);
+}
+.mode:hover,.build:hover{border-color:rgba(76,229,194,.65);box-shadow:0 12px 28px rgba(0,0,0,.2)}
+.map{background:linear-gradient(145deg,rgba(18,73,82,.94),rgba(23,37,77,.96))}
+.citymap{
+ background:
+  radial-gradient(circle at 18% 12%,rgba(255,255,255,.12),transparent 38%),
+  linear-gradient(135deg,#176d69,#315e9a 55%,#584c91);
+ border-color:rgba(158,222,255,.3);
+}
+button{
+ background:linear-gradient(120deg,#24c99c,#248fce 58%,#7566d9);
+ box-shadow:0 8px 22px rgba(35,158,190,.2);
+}
+button:hover:not(:disabled){box-shadow:0 13px 28px rgba(55,176,205,.3)}
+.secondary{background:linear-gradient(120deg,rgba(103,127,180,.22),rgba(94,83,160,.22));border-color:rgba(160,177,235,.3)}
+.danger{background:linear-gradient(120deg,#e05b79,#a64478)}
+input,select{
+ background:rgba(8,16,38,.78);
+ border-color:rgba(145,166,230,.3);
+}
+input:focus,select:focus{
+ outline:none;border-color:#55dfc2;
+ box-shadow:0 0 0 3px rgba(85,223,194,.13);
+}
+.need,.country,.mcol,.notice{
+ background-color:rgba(35,52,91,.42);
+ border-color:rgba(145,166,230,.22);
+}
+.fill.good{background:linear-gradient(270deg,#20c997,#65efd0)}
+.fill.ok{background:linear-gradient(270deg,#f1ad43,#ffe078)}
+.fill.bad{background:linear-gradient(270deg,#e34e79,#ff8fa5)}
+.chip.good{color:#8affd4;background:rgba(32,201,151,.16);border-color:rgba(86,235,190,.36)}
+.chip.ok{color:#ffe19a;background:rgba(241,173,67,.15);border-color:rgba(255,215,120,.38)}
+.chip.bad{color:#ffabbc;background:rgba(227,78,121,.16);border-color:rgba(255,143,165,.4)}
+.cell{border-color:rgba(255,255,255,.16)}
+.brand-footer{color:#9bffe0;text-shadow:0 0 20px rgba(54,214,176,.32)}
+@media(prefers-reduced-motion:no-preference){
+ .hero{background-size:180% 180%;animation:heroHue 13s ease-in-out infinite alternate}
+ @keyframes heroHue{from{background-position:0% 50%}to{background-position:100% 50%}}
+ .tag{animation:tagPulse 5s ease-in-out infinite}
+ @keyframes tagPulse{0%,100%{box-shadow:0 0 0 rgba(54,214,176,0)}50%{box-shadow:0 0 18px rgba(54,214,176,.12)}}
+}
+
+/* ===== War / research / diplomacy upgrade ===== */
+.gold{background:linear-gradient(120deg,#e9b23c,#c9822a)!important;color:#1d1400!important}
+.topnav{position:sticky;top:0;z-index:30;display:flex;gap:8px;align-items:center;margin:0 0 16px;padding:8px 10px;border:1px solid var(--line);border-radius:18px;background:rgba(9,28,40,.9);backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.navin{display:flex;gap:6px;overflow-x:auto;flex:1;scrollbar-width:none;padding:2px}
+.navin::-webkit-scrollbar{display:none}
+.navin button,.navtools button{flex:0 0 auto;padding:9px 13px;border-radius:12px;font-size:13px;white-space:nowrap;background:rgba(160,177,235,.1);border-color:rgba(160,177,235,.2);box-shadow:none;position:relative}
+.navin button.on{background:linear-gradient(120deg,#20bd89,#3a86d6);border-color:rgba(255,255,255,.3);box-shadow:0 0 18px rgba(54,214,176,.35)}
+.navtools{display:flex;gap:6px}
+#bellN{position:absolute;top:-5px;left:-5px;min-width:17px;height:17px;border-radius:9px;background:#e34e79;font-size:10px;font-style:normal;display:none;place-items:center;padding:0 4px}
+.wpage{animation:none}
+.pg-in{animation:pgIn .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes pgIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.phead h2{margin:0;font-size:22px}
+.sub{margin:18px 0 10px;font-size:16px;color:#a7ffe0}
+h4{margin:16px 0 8px;font-size:14px;color:#cfe3ff}
+.panel.inner{background:rgba(10,30,42,.6);box-shadow:none;margin-bottom:14px}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-bottom:6px}
+.bcard{display:flex;gap:12px;padding:14px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,rgba(34,79,76,.45),rgba(15,47,54,.75));transition:transform .2s,border-color .2s}
+.bcard:hover{transform:translateY(-3px);border-color:rgba(90,225,174,.5)}
+.bcard.owned{border-color:rgba(255,217,120,.45)}
+.bcard.locked{opacity:.62}
+.bic{font-size:34px;width:56px;height:56px;border-radius:14px;display:grid;place-items:center;flex:0 0 56px;background:rgba(255,255,255,.08)}
+.bg-barracks .bic{background:linear-gradient(145deg,#5d6b3a,#33401f)}.bg-camp .bic{background:linear-gradient(145deg,#8a5a2a,#4b2f14)}.bg-tower .bic{background:linear-gradient(145deg,#59667a,#2d3644)}.bg-wall .bic{background:linear-gradient(145deg,#8c7a62,#4f4334)}.bg-hq .bic{background:linear-gradient(145deg,#8a3a46,#4a1e27)}.bg-lab .bic{background:linear-gradient(145deg,#3a6fa6,#1c3b61)}.bg-storage .bic{background:linear-gradient(145deg,#a9803a,#5e4519)}.bg-hospital .bic{background:linear-gradient(145deg,#dfe7ef,#9fb6cc)}.bg-datacenter .bic{background:linear-gradient(145deg,#2d5d7a,#102a3d)}
+.bg-hotel .bic,.bg-museum .bic,.bg-resort .bic,.bg-stadium .bic,.bg-airport .bic{background:linear-gradient(145deg,#d9a56a,#8a5aa0)}
+.bt{flex:1;min-width:0}.bt h3{margin:0 0 4px;font-size:15px}.bt p{margin:0 0 8px;color:var(--muted);font-size:12.5px;line-height:1.7}.bt button{width:100%;padding:9px 10px;font-size:13px}
+.lvl{font-size:11px;color:#ffd978;font-weight:700;margin-inline-start:4px}
+.pips{display:flex;gap:4px;margin-bottom:8px}.pips i{height:6px;flex:1;border-radius:4px;background:rgba(255,255,255,.12)}.pips i.on{background:linear-gradient(90deg,#ffd978,#f0a93b)}
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed rgba(255,255,255,.1);font-size:13.5px}
+.kv span{color:var(--muted)}
+.tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto}
+.tabs button{background:rgba(160,177,235,.1);box-shadow:none;padding:9px 14px}.tabs button.on{background:linear-gradient(120deg,#20bd89,#3a86d6)}
+.wrap{flex-wrap:wrap}.wrap button{flex:1 1 auto;padding:9px 12px;font-size:13px}
+.atkgrid{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:start}
+.amap{width:100%;height:auto;display:block;border-radius:14px;background:radial-gradient(ellipse at 50% 40%,#133a4a,#0a1b2a)}
+.cnode{cursor:pointer;transition:transform .2s}.cnode:hover circle,.cnode.sel circle{filter:drop-shadow(0 0 2px #fff)}
+.cnode text{font-family:'Vazirmatn',Tahoma,sans-serif;pointer-events:none}
+.prep{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.prep label,.sel{font-size:12px;color:var(--muted)}
+.prep input{margin:4px 0}
+.est{margin:10px 0;padding:10px;border-radius:12px;background:rgba(255,217,120,.08);border:1px solid rgba(255,217,120,.3);font-size:13px;line-height:1.8}
+.clist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.clist.big{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+.ccard{padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(10,30,42,.55);display:flex;flex-direction:column;gap:8px}
+.ccard.sel{border-color:#ffd978;box-shadow:0 0 16px rgba(255,217,120,.2)}
+.ccard button{padding:8px 10px;font-size:13px}
+.cmeta{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:#d3def5}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.hrow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 12px;margin:6px 0;border-radius:11px;background:rgba(255,255,255,.05);font-size:13px;border-inline-start:4px solid #6c7a99}
+.hrow.win{border-color:#36d6b0}.hrow.lose{border-color:#e34e79}.hrow small{color:var(--muted);white-space:nowrap}
+.chat{height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:7px;padding:10px;border:1px solid var(--line);border-radius:14px;background:rgba(4,20,30,.6);margin-bottom:8px}
+.msg{max-width:82%;padding:7px 11px;border-radius:12px;background:rgba(255,255,255,.08);align-self:flex-start;font-size:13px;line-height:1.7}.msg small{display:block;color:#9bd2ff;font-size:11px}.msg.me{align-self:flex-end;background:rgba(32,189,137,.22)}
+form.row input{margin:0}
+#toasts{position:fixed;top:78px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:8px;width:min(420px,92vw);pointer-events:none}
+.toast{padding:11px 15px;border-radius:13px;background:rgba(12,34,48,.97);border:1px solid var(--line);font-size:13px;box-shadow:0 12px 30px rgba(0,0,0,.4);animation:pgIn .3s}
+.toast.good{border-color:#36d6b0}.toast.bad{border-color:#e34e79}.toast.warn{border-color:#f1ad43}.toast.out{opacity:0;transition:opacity .4s}
+.brow{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:12px 0}.brow div{background:rgba(255,255,255,.06);padding:9px;border-radius:11px}.brow small{display:block;color:var(--muted);font-size:11px}
+#warModal .modal-card button:last-child{width:100%;margin-top:6px}
+.loglist{max-height:55vh;overflow:auto}
+#musicBox{position:fixed;top:70px;left:12px;z-index:70;width:min(320px,92vw);padding:14px;border-radius:16px;border:1px solid var(--line);background:rgba(9,28,40,.97);box-shadow:0 16px 40px rgba(0,0,0,.5)}
+#musicBox .ctl{display:flex;gap:8px;align-items:center;margin:8px 0}.ctl button{padding:8px 12px}
+#musicName{font-size:13px;font-weight:700;color:#a7ffe0}
+#musicList{max-height:190px;overflow:auto;display:flex;flex-direction:column;gap:4px}.mi{text-align:right;background:rgba(160,177,235,.08);box-shadow:none;font-size:12.5px;padding:7px 10px}.mi.on{background:rgba(32,189,137,.3)}
+.cell.nb{background:linear-gradient(165deg,#e1d8ff,#9aa6e8)}
+.cell.nb-barracks{background:linear-gradient(165deg,#c9d79a,#7e9a4a)}.cell.nb-camp{background:linear-gradient(165deg,#e8c79a,#b07a3a)}.cell.nb-tower{background:linear-gradient(165deg,#cfd8e6,#7d8aa0)}.cell.nb-wall{background:linear-gradient(165deg,#e6d6bd,#a38c68)}.cell.nb-hq{background:linear-gradient(165deg,#f0b4bc,#b5586a)}.cell.nb-lab{background:linear-gradient(165deg,#b8dcff,#4f8fcf)}.cell.nb-storage{background:linear-gradient(165deg,#f2d9a0,#b98a3c)}.cell.nb-hospital{background:linear-gradient(165deg,#fff,#b8cde0)}.cell.nb-datacenter{background:linear-gradient(165deg,#a9d4e6,#356b86)}.cell.nb-hotel,.cell.nb-museum,.cell.nb-resort,.cell.nb-stadium,.cell.nb-airport{background:linear-gradient(165deg,#ffe0b8,#c77fb0)}
+@media(max-width:760px){.atkgrid,.cols2{grid-template-columns:1fr}.stats3{grid-template-columns:1fr 1fr 1fr;gap:6px}.stats3 .stat b{font-size:15px}.bcard{padding:11px}.navin button span{display:none}.navin button{padding:9px 11px}.clist.big{grid-template-columns:1fr}}
+@media(max-width:420px){.navin button span{display:inline;font-size:11.5px}}
+@media(prefers-reduced-motion:reduce){.pg-in,.toast{animation:none}}
+
+</style></head>
+<body><main class="wrap">
+<header class="top"><div class="brand">🌍 WORLD MAYOR</div><span class="tag" id="modeTag">نسخه تک‌نفره</span></header>
+<section id="home">
+ <div class="hero"><h1>شهردار بزرگ</h1><div class="muted">از یک محله کوچک شروع کن؛ شهری بساز که روی نقشه جهان بدرخشد.</div></div>
+ <section class="panel"><h2>🎮 انتخاب حالت بازی</h2><div class="menu">
+  <button class="mode" onclick="startGame('solo')">👤 <strong>تک‌نفره با هوش مصنوعی</strong><span>شهر خودت را بساز و با شهرهای رقیب رقابت کن. ذخیره خودکار روی همین دستگاه.</span></button>
+  <button class="mode" onclick="openMulti()">🌐 <strong>چندنفره</strong><span>ورود به لابی عمومی نمایشی یا ساخت اتاق خصوصی. اتصال آنلاین واقعی به سرور نیاز دارد.</span></button>
+  <button class="mode" onclick="showSettings()">⚙️ <strong>تنظیمات</strong><span>تنظیم نام شهردار و مدیریت ذخیره بازی.</span></button>
+ </div></section>
+ <section class="panel acc" id="accountPanel">
+  <div class="row"><h2>☁️ حساب کاربری و ذخیره ابری</h2><span class="chip idle js-acc-chip">وارد نشده‌اید</span></div>
+  <p class="muted">بازی همیشه روی همین دستگاه ذخیره می‌شود. با ورود به حساب، شهر شما در فضای ابری هم نگه‌داری و بین دستگاه‌ها همگام می‌شود.</p>
+  <div id="accGuest">
+   <form id="authForm" onsubmit="return doLogin(event)" autocomplete="on">
+    <label for="accEmail">ایمیل</label><input type="email" id="accEmail" name="email" dir="ltr" autocomplete="email" placeholder="example@email.com" required>
+    <label for="accPass">رمز عبور</label><input type="password" id="accPass" name="password" dir="ltr" autocomplete="current-password" placeholder="حداقل ۶ نویسه" minlength="6" required>
+    <div class="actions" style="margin-top:8px"><button type="submit" id="btnLogin">ورود</button><button type="button" class="secondary" id="btnRegister" onclick="doRegister()">ثبت‌نام</button></div>
+   </form>
+  </div>
+  <div id="accUser" class="hidden">
+   <div class="notice">وارد شده با: <b id="accEmailShown" dir="ltr"></b></div>
+   <div class="actions" style="margin-top:10px"><button class="js-cloud-btn" onclick="cloudSaveManual()">☁️ ذخیره در ابر</button><button class="secondary js-cloud-btn" onclick="cloudLoadManual()">⬇️ بارگذاری از ابر</button><button class="danger" onclick="doLogout()">خروج از حساب</button></div>
+  </div>
+  <div class="syncrow"><span class="muted">وضعیت همگام‌سازی:</span><span class="chip idle js-sync-chip">وارد نشده‌اید</span></div>
+  <div class="actions" style="margin-top:10px"><button type="button" class="secondary hidden" id="btnRetrySdk" onclick="retryConnect()">🔄 تلاش دوباره برای اتصال</button><button type="button" class="secondary" onclick="cloudDiagnose()">🩺 بررسی اتصال</button></div>
+  <div class="notice accmsg js-msgbox" role="status" aria-live="polite"><span class="js-msg"></span></div>
+ </section>
+ <section id="multi" class="panel hidden"><div class="row"><h2>🌐 لابی چندنفره</h2><button class="secondary" onclick="backHome()">بازگشت</button></div><div class="notice">این نسخه رابط لابی را دارد، اما هنوز به سرور اینترنتی وصل نیست؛ بازیکنان این فهرست نمونه هستند.</div><h3>اتاق‌های عمومی</h3><div class="notice">🏙️ اتاق سازندگان · ۳ بازیکن نمایشی<br>🌱 رقابت اقتصادی · ۲ بازیکن نمایشی<br>🌍 جهان تازه · ۱ بازیکن نمایشی</div><button onclick="startGame('multi-demo')">ورود به اتاق آزمایشی</button><h3>ساخت اتاق خصوصی</h3><input id="roomName" placeholder="نام اتاق"><button class="secondary" onclick="createRoom()">ساخت اتاق آزمایشی</button><p id="roomMsg" class="muted"></p></section>
+ <section id="settings" class="panel hidden"><div class="row"><h2>⚙️ تنظیمات</h2><button class="secondary" onclick="backHome()">بازگشت</button></div><label>نام شهردار</label><input id="mayorName" maxlength="22" placeholder="شهردار من"><div class="actions"><button onclick="saveSettings()">ذخیره تنظیمات</button><button class="danger" onclick="clearSave()">پاک کردن ذخیره</button></div><p id="settingsMsg" class="muted"></p></section>
+</section>
+<section id="game" class="hidden">
+ <div class="hero"><div class="row"><div><h1 id="cityTitle">شهر شهردار من</h1><div class="muted" id="mayorLine">شهردار: من</div></div><button class="secondary" onclick="backHome()">منوی اصلی</button></div></div>
+ <section class="panel"><div class="grid"><div class="stat"><small>💰 خزانه</small><b id="cash">۱٬۲۰۰ $</b></div><div class="stat"><small>👥 جمعیت</small><b id="population">۵٬۰۰۰</b></div><div class="stat"><small>😊 رضایت</small><b id="happiness">۶۵٪</b></div><div class="stat"><small>⭐ شهرت شهر</small><b id="fame">۱</b></div></div></section>
+ <nav id="topnav" class="topnav" aria-label="منوی اصلی بازی"><div class="navin">
+  <button data-p="city" class="on" onclick="showPage('city')">🏙️ <span>شهر</span></button>
+  <button data-p="build" onclick="showPage('build')">🏗️ <span>ساخت‌وساز</span></button>
+  <button data-p="atk" onclick="showPage('atk')">🗺️ <span>نقشه حمله</span></button>
+  <button data-p="war" onclick="showPage('war')">⚔️ <span>جنگ</span></button>
+  <button data-p="dip" onclick="showPage('dip')">🤝 <span>دیپلماسی</span></button>
+  <button data-p="al" onclick="showPage('al')">🛡️ <span>اتحاد</span></button>
+  <button data-p="res" onclick="showPage('res')">🔬 <span>ریسرچ</span></button>
+  <button data-p="tour" onclick="showPage('tour')">🏖️ <span>گردشگری</span></button>
+  <button data-p="status" onclick="showPage('status')">📊 <span>وضعیت شهر</span></button>
+ </div><div class="navtools"><button onclick="showLog()" aria-label="رویدادها">🔔<i id="bellN"></i></button><button onclick="toggleMusic()" aria-label="موزیک">🎵</button></div></nav>
+ <div id="page-city" class="wpage pg-in">
+ <section class="panel cloudbar" id="cloudBar">
+  <div class="grp"><span class="chip idle js-acc-chip">وارد نشده‌اید</span><span class="chip idle js-sync-chip">وارد نشده‌اید</span><span class="muted js-email" dir="ltr"></span></div>
+  <div class="grp"><button class="js-cloud-btn" onclick="cloudSaveManual()">☁️ ذخیره در ابر</button><button class="secondary js-cloud-btn" onclick="cloudLoadManual()">⬇️ بارگذاری از ابر</button><button class="secondary" id="btnGoLogin" onclick="goAccount()">ورود / ثبت‌نام</button></div>
+  <div class="js-msg" style="flex-basis:100%"></div>
+ </section>
+ <section class="panel map"><div class="maphead"><div><h2 style="margin:0">🗺️ نقشه زنده شهر</h2><small class="muted">با ساخت‌وساز، خیابان‌ها و محله‌ها روی نقشه گسترش پیدا می‌کنند.</small></div><span class="tag" id="mapLevel">سطح شهر ۱</span></div><div class="citymap" id="cityMap" role="img" aria-label="نقشه شهر"></div><div class="legend"><span>🛣️ خیابان</span><span>🏠 مسکونی</span><span>🏭 صنعتی</span><span>⚡ نیروگاه</span><span>🌳 فضای سبز</span><span>🏬 تجاری</span></div><div class="row" style="margin-top:10px"><span class="muted">وسعت نقشه: <b id="mapSize">۸ × ۶</b></span><span class="muted">شهرت با رشد شهر بیشتر می‌شود.</span></div></section>
+ <div class="columns">
+  <section class="panel"><h2>🏗️ ساخت‌وساز</h2><div class="buildings">
+   <div class="build"><div class="emoji">🏠</div><h3>خانه مسکونی</h3><p>۸۰۰ نفر جمعیت، ظرفیت مسکن ۱٬۲۰۰ نفر</p><button onclick="build('homes')">ساخت · ۳۰۰$</button></div>
+   <div class="build"><div class="emoji">🌳</div><h3>پارک شهری</h3><p>افزایش رضایت و فضای سبز برای ۳٬۰۰۰ نفر</p><button onclick="build('parks')">ساخت · ۲۰۰$</button></div>
+   <div class="build"><div class="emoji">🏭</div><h3>کارخانه</h3><p>درآمد بیشتر، ۵۰۰ شغل؛ آلودگی و مصرف برق بالا</p><button onclick="build('factories')">ساخت · ۳۵۰$</button></div>
+   <div class="build"><div class="emoji">⚡</div><h3>نیروگاه</h3><p>۴٬۰۰۰ واحد برق برای توسعه شهر</p><button onclick="build('plants')">ساخت · ۴۰۰$</button></div>
+   <div class="build"><div class="emoji">🏬</div><h3>مرکز خرید</h3><p>افزایش درآمد و شهرت، ۳۵۰ شغل</p><button onclick="build('shops')">ساخت · ۵۰۰$</button></div>
+   <div class="build"><div class="emoji">🛣️</div><h3>خیابان جدید</h3><p>گسترش محدوده و شهرت شهر</p><button onclick="build('roads')">ساخت · ۱۲۰$</button></div>
+  </div></section>
+  <div class="sidecol">
+   <section class="panel"><h2>📊 مدیریت شهر</h2><div class="notice" id="report">به شهر خودت خوش آمدی، شهردار!</div><hr style="border:0;border-top:1px solid var(--line);margin:15px 0"><div class="row"><span>درآمد هر نوبت</span><b id="income">۱۸۰ $</b></div><div class="row"><span>هزینه نگهداری</span><b id="expense">۰ $</b></div><div class="row"><span>رتبه جهانی</span><b id="rank">۱</b></div><button style="width:100%;margin-top:18px" onclick="nextTurn()">⏭️ پایان نوبت</button><button class="secondary" style="width:100%;margin-top:8px" onclick="resetGame()">شروع دوباره</button></section>
+   <section class="panel" id="citizens"><div class="needhead"><h2>👨‍👩‍👧‍👦 وضعیت شهروندان <small class="muted">Citizen Status</small></h2><span class="tag" id="needOverall">رضایت خدمات: ۱۰۰٪</span></div>
+    <div id="needsList"></div>
+    <div class="outlook"><span>📈 رشد جمعیت در نوبت بعد</span><span class="chip good" id="growthChip">سالم</span></div>
+    <div class="outlook"><span>📶 اینترنت شهر</span><span class="chip good" id="netChip">۴G</span></div>
+    <div class="notice" id="needTip" style="margin-top:10px"></div>
+   </section>
+  </div>
+ </div>
+ </div>
+ <section id="pg-build" class="wpage hidden"></section><section id="pg-atk" class="wpage hidden"></section><section id="pg-war" class="wpage hidden"></section><section id="pg-dip" class="wpage hidden"></section><section id="pg-al" class="wpage hidden"></section><section id="pg-res" class="wpage hidden"></section><section id="pg-tour" class="wpage hidden"></section><section id="pg-status" class="wpage hidden"></section>
+</section><div class="brand-footer">BeatGames Team</div></main>
+<div id="toasts" aria-live="polite"></div>
+<div id="warModal" class="modal hidden" role="dialog" aria-modal="true"><div class="modal-card" id="warModalBody"></div></div>
+<div id="musicBox" class="hidden"><div id="musicName">—</div><div class="ctl"><button class="secondary" onclick="mPrev()">⏮</button><button id="musicPlay" onclick="mToggle()">▶</button><button class="secondary" onclick="mNext()">⏭</button><input type="range" min="0" max="100" value="55" oninput="mVol(this.value)" style="margin:0" aria-label="صدا"></div><div id="musicList"></div><label class="muted" style="display:block;margin-top:8px">➕ افزودن موزیک از دستگاه (همین نشست)<input type="file" accept="audio/*" multiple onchange="mFiles(this)"></label><small class="muted">پس از پایان هر قطعه، قطعهٔ بعد خودکار پخش می‌شود.</small></div>
+<div id="syncModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="mTitle"><div class="modal-card"><h3 id="mTitle"></h3><div class="notice" id="mText"></div><div class="mcmp" id="mCompare"></div><div id="mActions"></div></div></div>
+<script>
+const $=id=>document.getElementById(id), fmt=n=>Math.floor(n).toLocaleString('fa-IR');
+const clamp=(v,a=0,b=100)=>Math.min(b,Math.max(a,v));
+
+/* ---------- Balance settings (tuned for start: 5,000 pop, $1,200) ---------- */
+const CFG={
+ baseHousing:5300,homeCap:1200,          // housing capacity
+ baseJobs:1800,factoryJobs:500,shopJobs:350,workforce:0.35, // employment
+ baseGreen:4000,parkCover:3000,          // people covered by green space
+ basePower:5500,plantPower:4000,factoryPower:900,shopPower:500 // electricity
+};
+const SAVE_VERSION=3;
+
+const defaults=()=>({cash:1200,pop:5000,happy:65,fame:1,turn:1,homes:0,parks:0,factories:0,plants:0,shops:0,roads:0,mode:'solo',mayor:'من',report:'به شهر خودت خوش آمدی، شهردار!',legacyCap:0,lastGrowth:0,lastNet:0,ver:SAVE_VERSION,w:defaultW(1)});
+function safeNum(v,fallback){let n=Number(v);return Number.isFinite(n)?Math.max(0,n):fallback}
+function load(){try{return normalizeSave(JSON.parse(localStorage.getItem('worldMayorSave')||'null'))}catch{return defaults()}}
+// Same validation/migration as before; now also used for saves coming from the cloud.
+function normalizeSave(old){
+ const d=defaults();
+ try{
+  if(!old||typeof old!=='object')return d;
+  // Migrate earlier saves: v1 used money/pop/happy and singular building keys.
+  const r={
+   ...d,
+   cash:safeNum(old.cash??old.money,d.cash),
+   pop:safeNum(old.pop??old.population,d.pop),
+   happy:Math.min(100,safeNum(old.happy??old.happiness,d.happy)),
+   fame:safeNum(old.fame??old.score,d.fame),
+   turn:safeNum(old.turn,d.turn)||1,
+   homes:safeNum(old.homes??old.home,d.homes),
+   parks:safeNum(old.parks??old.park,d.parks),
+   factories:safeNum(old.factories??old.factory,d.factories),
+   plants:safeNum(old.plants??old.plant,d.plants),
+   shops:safeNum(old.shops??old.shop??old.market,d.shops),
+   roads:safeNum(old.roads,d.roads),
+   mode:typeof old.mode==='string'?old.mode:d.mode,
+   mayor:typeof old.mayor==='string'?old.mayor.slice(0,22):d.mayor,
+   report:typeof old.report==='string'?old.report:d.report,
+   lastGrowth:safeNum(old.lastGrowth,0),
+   lastNet:Number.isFinite(Number(old.lastNet))?Number(old.lastNet):0
+  };
+  if(Number(old.ver)>=SAVE_VERSION){
+   r.legacyCap=safeNum(old.legacyCap,0);
+  }else{
+   // Older save: keep existing population housed so progress isn't punished on first load.
+   const cap=CFG.baseHousing+r.homes*CFG.homeCap;
+   r.legacyCap=Math.max(0,Math.ceil(r.pop*1.06)-cap);
+  }
+  r.w=normalizeW(old.w,r.turn);
+  r.ver=SAVE_VERSION;
+  return r;
+ }catch{return d}
+}
+/* ===== WAR / RESEARCH / DIPLOMACY — static data (must be defined before load()) ===== */
+const RES_TIME=3600000; // every research = 60 real minutes
+const MB={ // buildings (level 0 = not built)
+ barracks:{i:'🪖',n:'پادگان نظامی',g:'mil',cash:400,max:5,d:'ظرفیت ارتش: +۴۰ واحد در هر سطح'},
+ camp:{i:'🎯',n:'اردوگاه آموزشی',g:'mil',cash:500,max:5,d:'+۶٪ قدرت حمله در هر سطح'},
+ tower:{i:'🗼',n:'برج دفاعی',g:'mil',cash:450,max:5,d:'+۸٪ دفاع شهر در هر سطح'},
+ wall:{i:'🧱',n:'دیوار شهر',g:'mil',cash:350,max:5,d:'+۶٪ دفاع و ۵٪ کاهش تلفات در هر سطح'},
+ hq:{i:'🏛️',n:'ستاد نظامی',g:'mil',cash:900,max:5,d:'+۴٪ حمله و ۳٪ تخفیف آموزش نیرو در هر سطح'},
+ lab:{i:'🔬',n:'مرکز تحقیقات',g:'mil',cash:800,max:5,d:'برای ریسرچ لازم است؛ ۸٪ تخفیف هزینه ریسرچ در هر سطح'},
+ storage:{i:'📦',n:'انبار منابع',g:'mil',cash:400,max:5,d:'۸٪ خزانه در هر سطح از غارت محافظت می‌شود'},
+ hospital:{i:'🏥',n:'بیمارستان',g:'mil',cash:600,max:5,d:'۸٪ تلفات نیرو در هر سطح بازمی‌گردد'},
+ datacenter:{i:'🖥️',n:'مرکز امنیت سایبری',g:'tech',cash:700,max:5,need:'cyber1',d:'+۸٪ دفاع سایبری در هر سطح'},
+ hotel:{i:'🏨',n:'هتل بین‌المللی',g:'tour',cash:600,max:5,need:'tour1',tour:60,d:'جذب گردشگر؛ حدود ۶۰$ درآمد در هر سطح'},
+ museum:{i:'🖼️',n:'موزه و میراث فرهنگی',g:'tour',cash:800,max:5,need:'tour2',tour:85,d:'جذب گردشگر و شهرت؛ حدود ۸۵$ در هر سطح'},
+ resort:{i:'🏖️',n:'اقامتگاه ساحلی',g:'tour',cash:1100,max:5,need:'tour3',tour:115,d:'گردشگری تفریحی؛ حدود ۱۱۵$ در هر سطح'},
+ stadium:{i:'🏟️',n:'استادیوم ملی',g:'tour',cash:1500,max:5,need:'tour4',tour:150,d:'رویدادهای ورزشی؛ حدود ۱۵۰$ در هر سطح'},
+ airport:{i:'✈️',n:'فرودگاه بین‌المللی',g:'tour',cash:2200,max:5,need:'tour5',tour:210,d:'بیشترین گردشگر؛ حدود ۲۱۰$ در هر سطح'}
+};
+const UNIT={
+ inf:{i:'🪖',n:'سرباز',cash:40,pw:1,cap:1,up:1},
+ tank:{i:'🛡️',n:'تانک',cash:220,pw:7,cap:4,up:4,need:'tank'},
+ jet:{i:'✈️',n:'جنگنده',cash:500,pw:16,cap:8,up:8,need:'jet'}
+};
+const STRAT={
+ balanced:{n:'متعادل',a:1,l:1,d:'تعادل بین قدرت و تلفات'},
+ assault:{n:'یورش سنگین',a:1.18,l:1.3,d:'قدرت بیشتر، تلفات بیشتر'},
+ cautious:{n:'محتاطانه',a:.94,l:.65,d:'تلفات کمتر، قدرت کمی کمتر'}
+};
+const RS={};
+(function(){
+ const A=(id,o)=>{RS[id]=Object.assign({id},o)};
+ A('tank',{i:'🛡️',n:'تانک',c:'mil',cash:600,d:'باز شدن آموزش تانک (قدرت ۷)'});
+ A('jet',{i:'✈️',n:'جنگنده',c:'mil',cash:1000,req:'tank',d:'باز شدن آموزش جنگنده (قدرت ۱۶)'});
+ A('atk1',{i:'⚔️',n:'تاکتیک تهاجمی ۱',c:'mil',cash:700,req:'tank',d:'+۱۰٪ قدرت حمله'});
+ A('atk2',{i:'⚔️',n:'تاکتیک تهاجمی ۲',c:'mil',cash:1300,req:'atk1',d:'+۱۰٪ قدرت حمله'});
+ A('def1',{i:'🏰',n:'استحکامات ۱',c:'mil',cash:700,d:'+۱۰٪ دفاع'});
+ A('def2',{i:'🏰',n:'استحکامات ۲',c:'mil',cash:1300,req:'def1',d:'+۱۰٪ دفاع'});
+ A('med1',{i:'⚕️',n:'طب میدانی',c:'mil',cash:600,d:'+۱۰٪ بازگشت تلفات'});
+ A('cyber1',{i:'💻',n:'جنگ سایبری',c:'cyber',cash:700,d:'باز شدن حمله سایبری و مرکز امنیت سایبری'});
+ A('cyberatk',{i:'🕷️',n:'بدافزار پیشرفته',c:'cyber',cash:900,req:'cyber1',d:'+۱۵٪ موفقیت و ۱ نوبت اختلال بیشتر'});
+ A('cdef1',{i:'🧱',n:'فایروال ملی',c:'cyber',cash:600,req:'cyber1',d:'+۲۰٪ دفاع سایبری'});
+ A('cdef2',{i:'🔐',n:'رمزنگاری پیشرفته',c:'cyber',cash:1000,req:'cdef1',d:'+۲۰٪ دفاع سایبری'});
+ A('cdef3',{i:'🛰️',n:'مرکز عملیات امنیت',c:'cyber',cash:1500,req:'cdef2',d:'+۲۰٪ دفاع سایبری'});
+ for(let g=5;g<=20;g++)A('n'+g,{i:'📶',n:'اینترنت '+g+'G',c:'net',g:g,cash:300+(g-4)*150,req:g>5?'n'+(g-1):null,d:'ارتقای شبکه به نسل '+g+' — رضایت و درآمد بیشتر'});
+ A('tour1',{i:'🏨',n:'صنعت هتلداری',c:'tour',cash:500,d:'باز شدن هتل بین‌المللی'});
+ A('tour2',{i:'🖼️',n:'میراث فرهنگی',c:'tour',cash:700,req:'tour1',d:'باز شدن موزه'});
+ A('tour3',{i:'🏖️',n:'گردشگری تفریحی',c:'tour',cash:900,req:'tour2',d:'باز شدن اقامتگاه ساحلی'});
+ A('tour4',{i:'🏟️',n:'رویدادهای ورزشی',c:'tour',cash:1200,req:'tour3',d:'باز شدن استادیوم ملی'});
+ A('tour5',{i:'✈️',n:'حمل‌ونقل هوایی',c:'tour',cash:1600,req:'tour4',d:'باز شدن فرودگاه بین‌المللی'});
+})();
+const RCAT={mil:'🪖 نظامی',cyber:'💻 سایبری',net:'📶 اینترنت',tour:'🏖️ گردشگری'};
+const CITIES=[
+ {id:'c1',n:'سپیدرود',o:'شهردار آرش',x:22,y:16,p:14,g:1.1,dl:1,rich:.8,ag:.15,cash:350,rel:10,i:'🏘️'},
+ {id:'c2',n:'مروارید‌بندر',o:'شهردار نسترن',x:78,y:14,p:26,g:1.6,dl:2,rich:1.3,ag:.25,cash:700,rel:5,i:'⚓'},
+ {id:'c3',n:'کوه‌سار',o:'شهردار کیان',x:12,y:44,p:38,g:2.2,dl:2,rich:.9,ag:.3,cash:600,rel:0,i:'⛰️'},
+ {id:'c4',n:'نیلوفرآباد',o:'شهردار مهسا',x:34,y:60,p:48,g:2.5,dl:3,rich:1.1,ag:.2,cash:900,rel:15,i:'🪷'},
+ {id:'c5',n:'آتشگاه',o:'شهردار بهرام',x:66,y:58,p:70,g:3.4,dl:3,rich:1,ag:.5,cash:1100,rel:-15,i:'🔥'},
+ {id:'c6',n:'زرین‌دشت',o:'شهردار داریوش',x:88,y:42,p:90,g:4,dl:4,rich:1.6,ag:.35,cash:1800,rel:-5,i:'🌾'},
+ {id:'c7',n:'شاهین‌قلعه',o:'شهردار سیاوش',x:50,y:10,p:115,g:4.6,dl:4,rich:1.2,ag:.55,cash:1500,rel:-20,i:'🦅'},
+ {id:'c8',n:'پولادین',o:'شهردار رستم',x:84,y:64,p:150,g:6,dl:5,rich:1.5,ag:.6,cash:2400,rel:-25,i:'🏰'}
+];
+const ALS=[{id:'a1',n:'پیمان البرز',m:['c1','c3','c4']},{id:'a2',n:'اتحاد کویر',m:['c5','c6']}];
+const HOME={x:46,y:36};
+function cityOf(id){return CITIES.find(c=>c.id===id)}
+function defaultW(t){
+ const cs={},cal={};
+ CITIES.forEach(c=>{cs[c.id]={p:c.p,cash:c.cash,rel:c.rel,st:'peace',truce:0,sanc:0,trade:false,cyber:0}});
+ ALS.forEach(a=>a.m.forEach(m=>{cal[m]=a.id}));
+ return{u:{inf:10,tank:0,jet:0},b:{},done:{},cur:null,net:4,cs,cal,mine:null,alName:'',chat:{},log:[],hist:[],seed:777,shield:(t||1)+10,hit:0,cdCy:0,st:{w:0,l:0,dw:0,dl:0,cy:0},unread:0,sancBy:0}
+}
+function normalizeW(o,t){
+ const d=defaultW(t);if(!o||typeof o!=='object')return d;
+ const n=(v,f,mx=1e9)=>{v=Number(v);return Number.isFinite(v)?Math.min(mx,Math.max(0,v)):f};
+ const str=(v,m)=>typeof v==='string'?v.slice(0,m):'';
+ ['inf','tank','jet'].forEach(k=>{d.u[k]=Math.floor(n(o.u&&o.u[k],d.u[k],1e5))});
+ Object.keys(MB).forEach(k=>{const v=Math.floor(n(o.b&&o.b[k],0,MB[k].max));if(v)d.b[k]=v});
+ Object.keys(RS).forEach(k=>{if(o.done&&o.done[k])d.done[k]=1});
+ if(o.cur&&RS[o.cur.id]&&Number.isFinite(Number(o.cur.end))&&!d.done[o.cur.id])d.cur={id:o.cur.id,end:Number(o.cur.end)};
+ d.net=Math.max(4,Math.min(20,Math.floor(n(o.net,4))));
+ CITIES.forEach(c=>{const x=o.cs&&o.cs[c.id];if(!x)return;const y=d.cs[c.id];
+  y.p=n(x.p,y.p,1e6);y.cash=n(x.cash,y.cash,1e8);const r=Number(x.rel);y.rel=Number.isFinite(r)?Math.max(-100,Math.min(100,r)):y.rel;
+  y.st=x.st==='war'?'war':'peace';y.truce=Math.floor(n(x.truce,0,999));y.sanc=Math.floor(n(x.sanc,0,999));y.trade=!!x.trade;y.cyber=Math.floor(n(x.cyber,0,99))});
+ const okA=v=>typeof v==='string'&&(v==='me'||ALS.some(a=>a.id===v));
+ if(o.cal&&typeof o.cal==='object'){d.cal={};CITIES.forEach(c=>{if(okA(o.cal[c.id]))d.cal[c.id]=o.cal[c.id]})}
+ d.mine=okA(o.mine)?o.mine:null;d.alName=str(o.alName,24);
+ if(o.chat&&typeof o.chat==='object')Object.keys(o.chat).forEach(k=>{if(!okA(k)||!Array.isArray(o.chat[k]))return;
+  d.chat[k]=o.chat[k].slice(-40).map(m=>({f:str(m&&m.f,24),x:str(m&&m.x,200),me:!!(m&&m.me)}))});
+ if(Array.isArray(o.log))d.log=o.log.slice(0,40).map(m=>({t:Math.floor(n(m&&m.t,0)),x:str(m&&m.x,300),k:str(m&&m.k,8)}));
+ if(Array.isArray(o.hist))d.hist=o.hist.slice(0,25).map(m=>({t:Math.floor(n(m&&m.t,0)),x:str(m&&m.x,300),win:!!(m&&m.win),k:str(m&&m.k,8)}));
+ d.seed=Math.floor(n(o.seed,777,2147483647))||777;d.shield=Math.floor(n(o.shield,d.shield,1e6));
+ d.hit=Math.floor(n(o.hit,0,99));d.cdCy=Math.floor(n(o.cdCy,0,99));d.unread=Math.floor(n(o.unread,0,99));d.sancBy=Math.floor(n(o.sancBy,0,99));
+ ['w','l','dw','dl','cy'].forEach(k=>{d.st[k]=Math.floor(n(o.st&&o.st[k],0,1e6))});
+ return d;
+}
+let s=load();
+function save(){try{localStorage.setItem('worldMayorSave',JSON.stringify(s))}catch(e){}}
+function hideSections(){['home','game','multi','settings'].forEach(x=>$(x).classList.add('hidden'))}
+function backHome(){hideSections();$('home').classList.remove('hidden')}
+function openMulti(){hideSections();$('home').classList.remove('hidden');$('multi').classList.remove('hidden')}
+function showSettings(){hideSections();$('home').classList.remove('hidden');$('settings').classList.remove('hidden');$('mayorName').value=s.mayor}
+function saveSettings(){s.mayor=$('mayorName').value.trim().slice(0,22)||'من';save();progressSaved();$('settingsMsg').textContent='تنظیمات ذخیره شد.';render()}
+function clearSave(){localStorage.removeItem('worldMayorSave');s=defaults();resetMeta();$('settingsMsg').textContent='ذخیره محلی پاک شد؛ بازی از ابتدا شروع می‌شود. (ذخیره ابری، در صورت وجود، دست‌نخورده می‌ماند.)';render()}
+function createRoom(){let n=$('roomName').value.trim()||'اتاق من';$('roomMsg').textContent='اتاق آزمایشی «'+n+'» ساخته شد. برای آنلاین شدن واقعی باید سرور متصل شود.'}
+function startGame(mode){s.mode=mode;save();hideSections();$('game').classList.remove('hidden');$('modeTag').textContent=mode==='solo'?'تک‌نفره با هوش مصنوعی':'چندنفره آزمایشی';render()}
+const costs={homes:300,parks:200,factories:350,plants:400,shops:500,roads:120};
+const labels={homes:'خانه مسکونی',parks:'پارک شهری',factories:'کارخانه',plants:'نیروگاه',shops:'مرکز خرید',roads:'خیابان جدید'};
+const icons={homes:'🏠',parks:'🌳',factories:'🏭',plants:'⚡',shops:'🏬'};
+
+/* ---------- Citizen needs ---------- */
+const NEEDS=[
+ {key:'housing',icon:'🏠',name:'مسکن',en:'Housing'},
+ {key:'jobs',icon:'💼',name:'اشتغال',en:'Employment'},
+ {key:'green',icon:'🌳',name:'فضای سبز',en:'Green Spaces'},
+ {key:'power',icon:'⚡',name:'برق',en:'Electricity'}
+];
+const NEED_LACK={housing:'به مسکن بیشتری نیاز است',jobs:'فرصت شغلی کافی نیست (کارخانه یا مرکز خرید بسازید)',green:'به فضای سبز بیشتری نیاز است',power:'برق کافی نیست (نیروگاه بسازید)'};
+function needStatus(sc){return sc>=85?{c:'good',t:'خوب'}:sc>=60?{c:'ok',t:'قابل‌قبول'}:{c:'bad',t:'کمبود'}}
+function calcNeeds(){
+ const pop=Math.max(1,s.pop);
+ const cap=CFG.baseHousing+s.homes*CFG.homeCap+s.legacyCap;
+ const ratio=cap/pop;
+ const jobs=CFG.baseJobs+s.factories*CFG.factoryJobs+s.shops*CFG.shopJobs, workers=Math.ceil(pop*CFG.workforce);
+ const green=CFG.baseGreen+s.parks*CFG.parkCover;
+ const supply=CFG.basePower+s.plants*CFG.plantPower, demand=pop+s.factories*CFG.factoryPower+s.shops*CFG.shopPower;
+ const n={
+  housing:{score:clamp(Math.round((ratio-0.85)/0.2*100)),supply:cap,demand:s.pop,detail:'ظرفیت '+fmt(cap)+' · جمعیت '+fmt(s.pop)},
+  jobs:{score:clamp(Math.round(jobs/Math.max(1,workers)*100)),supply:jobs,demand:workers,detail:'شغل '+fmt(jobs)+' · نیروی کار '+fmt(workers)},
+  green:{score:clamp(Math.round(green/pop*100)),supply:green,demand:s.pop,detail:'پوشش فضای سبز برای '+fmt(green)+' نفر'},
+  power:{score:clamp(Math.round(supply/Math.max(1,demand)*100)),supply:supply,demand:demand,detail:'تولید '+fmt(supply)+' · مصرف '+fmt(demand)}
+ };
+ n.overall=Math.round(n.housing.score*.3+n.jobs.score*.3+n.green.score*.2+n.power.score*.2);
+ n.severe=NEEDS.filter(k=>n[k.key].score<35).map(k=>k.key);
+ return n;
+}
+function growthInfo(n){
+ const room=Math.max(0,n.housing.supply-s.pop);
+ const others=[n.jobs.score,n.green.score,n.power.score];
+ const avg=(others[0]+others[1]+others[2])/3;
+ const m=Math.min(...others)<25?0:clamp((avg-40)/50,0,1);
+ const potential=60+s.homes*90+(s.happy>=70?60:0)+(s.happy>=90?40:0);
+ const raw=potential*m, growth=Math.floor(Math.min(raw,room));
+ let level='good',reason='';
+ if(growth<=0){level='stop';reason=room<=0?'housing':'severe'}
+ else if(m<0.7||raw>room){level='slow';reason=raw>room?'housing':'services'}
+ return {room,m,potential,growth,level,reason};
+}
+
+function build(type){let c=costs[type];if(s.cash<c){s.report='بودجه کافی نیست؛ برای درآمد بیشتر پایان نوبت را بزن.';render();return}s.cash-=c;s[type]++;
+ if(type==='homes'){s.pop+=800;s.happy=Math.min(100,s.happy+2);s.fame++}
+ if(type==='parks'){s.happy=Math.min(100,s.happy+8);s.fame+=2}
+ if(type==='factories'){s.happy=Math.max(0,s.happy-3);s.fame+=2}
+ if(type==='plants')s.fame++;
+ if(type==='shops'){s.fame+=4;s.happy=Math.min(100,s.happy+2)}
+ if(type==='roads')s.fame+=2;
+ s.report=labels[type]+' با موفقیت ساخته شد!';save();progressSaved();render()}
+
+function nextTurn(){
+ // 1) income & expenses (unchanged economy)
+ const E=econ(),inc=E.inc,exp=E.exp,net=E.net;
+ // 2) citizen needs, satisfaction, growth
+ const n=calcNeeds(), gi=growthInfo(n);
+ let dh;
+ if(n.severe.length)dh=-(2+n.severe.length);
+ else if(n.overall>=88)dh=2;
+ else if(n.overall>=75)dh=1;
+ else if(n.overall>=60)dh=0;
+ else dh=-1;
+ const newHappy=clamp(s.happy+dh-Math.min(3,netDef())), realDh=newHappy-s.happy;
+ s.happy=newHappy;
+ s.cash=Math.max(0,s.cash+net);s.turn++;s.pop+=gi.growth;
+ if(s.turn%3===0)s.fame++;
+ s.lastGrowth=gi.growth;s.lastNet=net;
+ // 3) report
+ const n2=calcNeeds();
+ let l1=net>=0?'شهر شما در این نوبت '+fmt(net)+' دلار درآمد خالص کسب کرد.':'هزینه‌ها '+fmt(-net)+' دلار بیشتر از درآمد بود.';
+ if(gi.growth>0)l1+=' جمعیت '+fmt(gi.growth)+' نفر افزایش یافت'+(gi.level==='slow'?' (رشد کند).':'.');
+ else l1+=gi.reason==='housing'?' ظرفیت مسکن پر است و جمعیت رشد نکرد.':' به‌خاطر کمبود شدید خدمات، رشد جمعیت متوقف شد.';
+ const good=[],mid=[],lack=[];
+ NEEDS.forEach(k=>{const sc=n2[k.key].score;if(sc>=85)good.push(k.name);else if(sc>=60)mid.push(k.name);else lack.push(NEED_LACK[k.key])});
+ let l2;
+ if(!mid.length&&!lack.length)l2='همه نیازهای شهروندان تأمین است.';
+ else{
+  const p=[];
+  if(good.length)p.push(good.join('، ')+' در وضعیت خوب است');
+  if(mid.length)p.push(mid.join('، ')+' قابل‌قبول است');
+  l2=p.join('؛ ');
+  if(lack.length)l2+=(p.length?'، اما ':'')+lack.join('، ');
+  l2+='.';
+ }
+ const l3=realDh>0?'رضایت شهروندان '+fmt(realDh)+' واحد بالا رفت.':realDh<0?'رضایت شهروندان '+fmt(-realDh)+' واحد کاهش یافت.':'رضایت شهروندان ثابت ماند.';
+ const wt=warTurn();
+ s.report='نوبت '+fmt(s.turn)+' تمام شد. '+l1+'\n'+l2+'\n'+l3+(wt?'\n'+wt:'');
+ save();progressSaved();render();
+ if(pendingBattle){const r=pendingBattle;pendingBattle=null;battleBox({win:r.win,title:r.win?'دفاع موفق در برابر '+cityOf(r.id).n:'حملهٔ '+cityOf(r.id).n+' به شهر شما',text:r.txt,rows:[['قدرت مهاجم',fmt(r.ap)],['قدرت دفاع شما',fmt(r.dp)],['غارت','$'+fmt(r.loot)],['تلفات',fmt(r.lostN)],['نجات‌یافته',fmt(r.backN)]]})}}
+function resetGame(){
+ const warn=(typeof user!=='undefined'&&user)?'بازی از ابتدا شروع شود؟\nتوجه: ذخیره ابری شما نیز با شهر جدید جایگزین می‌شود.':'بازی از ابتدا شروع شود؟';
+ if(confirm(warn)){s=defaults();save();progressSaved();render()}}
+
+/* ---------- Rendering ---------- */
+// Citizen panel markup is static (no user text), built once so bars can animate smoothly.
+$('needsList').innerHTML=NEEDS.map(k=>`<div class="need s-good" id="need-${k.key}"><div class="nh"><span class="nm">${k.icon} ${k.name} <small class="muted">${k.en}</small></span><span class="pct" id="pct-${k.key}">۱۰۰٪</span><span class="chip good" id="chip-${k.key}">خوب</span></div><div class="bar"><div class="fill good" id="fill-${k.key}"></div></div><div class="ndetail" id="det-${k.key}"></div></div>`).join('');
+
+function renderNeeds(){
+ const n=calcNeeds(), gi=growthInfo(n);
+ NEEDS.forEach(k=>{
+  const d=n[k.key], st=needStatus(d.score);
+  $('need-'+k.key).className='need s-'+st.c;
+  $('pct-'+k.key).textContent=fmt(d.score)+'٪';
+  $('chip-'+k.key).className='chip '+st.c;$('chip-'+k.key).textContent=st.t;
+  const f=$('fill-'+k.key);f.className='fill '+st.c;f.style.width=d.score+'%';
+  $('det-'+k.key).textContent=d.detail;
+ });
+ $('needOverall').textContent='رضایت خدمات: '+fmt(n.overall)+'٪';
+ const gc=gi.level==='good'?{c:'good',t:'سالم · +'+fmt(gi.growth)}:gi.level==='slow'?{c:'ok',t:'کند · +'+fmt(gi.growth)}:{c:'bad',t:'متوقف'};
+ $('growthChip').className='chip '+gc.c;$('growthChip').textContent=gc.t;
+ let worst=NEEDS[0].key;NEEDS.forEach(k=>{if(n[k.key].score<n[worst].score)worst=k.key});
+ const ws=n[worst].score;
+ $('needTip').textContent=ws>=85?'✅ نیازهای شهروندان تأمین است؛ شهر با آرامش رشد می‌کند.':(ws<60?'⚠️ ':'💡 ')+NEED_LACK[worst]+(ws<35?'؛ کمبود شدید باعث کاهش رضایت می‌شود.':'.');
+}
+
+let prevKeys=[];
+const TILE={'🏠':{c:'building home',t:'خانه مسکونی'},'🏭':{c:'building factory',t:'کارخانه'},'⚡':{c:'building plant',t:'نیروگاه'},'🏬':{c:'landmark shop',t:'مرکز خرید'},'🌳':{c:'park',t:'پارک شهری'}};
+const DECOS=['🌼','🌿','🍃'];
+const CARS=['🚗','🚕','🚌'];
+function renderMap(){
+ const size=8+Math.min(4,Math.floor(s.fame/12));
+ const ex=extraTiles(),R=6+Math.ceil(Math.max(0,ex.length-6)/size);$('mapSize').textContent=fmt(size)+' × '+fmt(R);$('cityMap').style.gridTemplateColumns=`repeat(${size},minmax(0,1fr))`;
+ let tiles=Array(size*R).fill('empty');for(let i=0;i<size;i++)tiles[2*size+i]='road';
+ let items=[...Array(s.homes).fill('🏠'),...Array(s.parks).fill('🌳'),...Array(s.factories).fill('🏭'),...Array(s.plants).fill('⚡'),...Array(s.shops).fill('🏬'),...ex],spots=[];
+ for(let r=0;r<R;r++)for(let c=0;c<size;c++)if(r!==2&&(c%2===0||r%2===1))spots.push(r*size+c);
+ items.forEach((e,i)=>{if(i<spots.length)tiles[spots[i]]=e});
+ const carMax=Math.min(size,1+Math.floor((s.homes+s.shops+s.factories)/2)+s.roads);
+ const keys=[];
+ $('cityMap').innerHTML=tiles.map((t,i)=>{
+  const v='v'+((i*5+(i>>3)*3)%3);let key=t,html;
+  if(t==='road'){
+   const col=i-2*size,hasCar=col%2===1&&(col-1)/2<carMax;
+   if(hasCar){key+='c'}
+   const car=hasCar?`<span class="car ${(col>>1)%2?'c2':''}">${CARS[(col>>1)%3]}</span>`:'';
+   html=`<div class="cell road ${prevKeys[i]!==key?'new':''}" title="خیابان">${car}</div>`;
+  }else if(t==='empty'){
+   const deco=i%7===3?DECOS[0]:i%11===5?DECOS[1]:i%13===2?DECOS[2]:'';
+   html=`<div class="cell empty ${v} ${prevKeys[i]!==key?'new':''}" title="زمین خالی">${deco?`<span class="deco">${deco}</span>`:''}</div>`;
+  }else{
+   const info=TILE[t]||NEW_TILES[t];
+   html=`<div class="cell ${info.c} ${v} ${prevKeys[i]!==key?'new':''}" title="${info.t}"><span class="ico">${t}</span></div>`;
+  }
+  keys.push(key);return html;
+ }).join('');
+ prevKeys=keys;
+}
+
+function render(){
+ $('cash').textContent=fmt(s.cash)+' $';$('population').textContent=fmt(s.pop);$('happiness').textContent=fmt(s.happy)+'٪';$('fame').textContent=fmt(s.fame);$('cityTitle').textContent='شهر '+s.mayor;$('mayorLine').textContent='شهردار: '+s.mayor+' · نوبت '+fmt(s.turn);
+ const E=econ();let inc=E.inc,exp=E.exp;$('income').textContent=fmt(inc)+' $';$('expense').textContent=fmt(exp)+' $';$('rank').textContent=fmt(Math.max(1,100-Math.floor(s.fame/2)));$('report').textContent=s.report;
+ document.querySelectorAll('.build button').forEach((b,i)=>{let key=Object.keys(costs)[i];b.disabled=s.cash<costs[key]});
+ let level=1+Math.floor((s.homes+s.parks+s.factories+s.plants+s.shops+s.roads)/5);$('mapLevel').textContent='سطح شهر '+fmt(level);
+ renderMap();renderNeeds();
+}
+/* =====================================================================
+   WAR · RESEARCH · INTERNET · DIPLOMACY · ALLIANCE · TOURISM · CYBER · MUSIC
+   Everything runs locally (single-player AI cities). State lives in s.w and is
+   saved/synced together with the rest of the save.
+   ===================================================================== */
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const canon=v=>JSON.stringify(v,(k,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.keys(x).sort().map(q=>[q,x[q]])):x);
+const lv=id=>s.w.b[id]||0, has=id=>!!s.w.done[id];
+function rnd(){let t=s.w.seed=(s.w.seed+0x6D2B79F5)|0;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}
+function commit(){save();progressSaved();render()}
+function toast(x,k){const box=$('toasts');if(!box)return;while(box.children.length>3)box.firstChild.remove();const e=document.createElement('div');e.className='toast '+(k||'');e.textContent=x;box.appendChild(e);setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),400)},4300)}
+function notify(x,k,quiet){const w=s.w;w.log.unshift({t:s.turn,x,k:k||'info'});w.log.length=Math.min(w.log.length,40);w.unread=Math.min(99,w.unread+1);if(!quiet)toast(x,k)}
+function hist(x,win,k){s.w.hist.unshift({t:s.turn,x,win:!!win,k:k||'war'});s.w.hist.length=Math.min(s.w.hist.length,25)}
+
+/* ---------- derived numbers ---------- */
+const troopPw=u=>u.inf*UNIT.inf.pw+u.tank*UNIT.tank.pw+u.jet*UNIT.jet.pw;
+const troopCap=()=>20+lv('barracks')*40;
+const troopUsed=()=>{const u=s.w.u;return u.inf*UNIT.inf.cap+u.tank*UNIT.tank.cap+u.jet*UNIT.jet.cap};
+const atkMult=()=>1+lv('camp')*.06+lv('hq')*.04+(has('atk1')?.1:0)+(has('atk2')?.1:0);
+const defMult=()=>1+lv('tower')*.08+lv('wall')*.06+(has('def1')?.1:0)+(has('def2')?.1:0);
+const recov=()=>Math.min(.6,lv('hospital')*.08+(has('med1')?.1:0));
+const cyberDef=()=>Math.min(.9,lv('datacenter')*.08+(has('cdef1')?.2:0)+(has('cdef2')?.2:0)+(has('cdef3')?.2:0));
+const netReq=()=>Math.min(20,4+Math.floor(s.pop/12000));
+const netDef=()=>Math.max(0,netReq()-s.w.net);
+const warActive=()=>CITIES.some(c=>s.w.cs[c.id].st==='war');
+const sanctioners=()=>CITIES.filter(c=>s.w.cs[c.id].rel<-60).length;
+const tourists=()=>Object.keys(MB).reduce((n,k)=>n+(MB[k].tour?lv(k)*MB[k].tour:0),0);
+function tourMult(){let m=.6+s.happy/250;if(warActive())m*=.7;if(s.w.hit>0)m*=.5;if(netDef()>0)m*=.8;return m}
+function econ(){
+ const base=180+s.factories*100+s.shops*130,d=netDef();
+ const netMul=d>0?1-.06*d:1+Math.min(.1,.02*(s.w.net-netReq()));
+ const trade=CITIES.reduce((n,c)=>{const x=s.w.cs[c.id];return n+(x.trade?Math.round(30+c.rich*25):0)},0);
+ const tour=Math.round(tourists()*tourMult());
+ let gross=Math.round(base*netMul)+tour+trade;
+ const cyberLoss=s.w.hit>0?Math.round(gross*.6):0;gross-=cyberLoss;
+ const sancLoss=Math.round(gross*Math.min(.2,.04*sanctioners()));gross-=sancLoss;
+ const upk=Object.keys(MB).reduce((n,k)=>n+lv(k)*12,0)+s.w.u.inf*UNIT.inf.up+s.w.u.tank*UNIT.tank.up+s.w.u.jet*UNIT.jet.up;
+ const exp=s.homes*25+s.parks*15+s.factories*40+s.plants*30+s.shops*20+s.roads*5+upk;
+ return{inc:gross,exp,net:gross-exp,base,netMul,tour,trade,cyberLoss,sancLoss,upk};
+}
+
+/* ---------- buildings ---------- */
+const bcost=id=>Math.round(MB[id].cash*Math.pow(1.65,lv(id)));
+function upB(id){
+ const b=MB[id],l=lv(id),c=bcost(id);
+ if(!b||l>=b.max)return;
+ if(b.need&&!has(b.need)){toast('ابتدا ریسرچ «'+RS[b.need].n+'» را کامل کنید.','warn');return}
+ if(s.cash<c){toast('بودجه کافی نیست.','warn');return}
+ s.cash-=c;s.w.b[id]=l+1;s.fame+=b.tour?3:1;
+ s.report=b.n+(l?' به سطح '+fmt(l+1)+' ارتقا یافت!':' ساخته شد!');
+ toast((l?'⬆️ ':'🏗️ ')+s.report,'good');commit();
+}
+function bCard(id){
+ const b=MB[id],l=lv(id),locked=b.need&&!has(b.need),c=bcost(id);
+ const pips=Array.from({length:b.max},(_,i)=>`<i class="${i<l?'on':''}"></i>`).join('');
+ let btn;
+ if(locked)btn=`<button disabled>🔒 نیازمند ریسرچ «${esc(RS[b.need].n)}»</button>`;
+ else if(l>=b.max)btn='<button disabled>✔ حداکثر سطح</button>';
+ else btn=`<button onclick="upB('${id}')" ${s.cash<c?'disabled':''}>${l?'ارتقا به سطح '+fmt(l+1):'ساخت'} · ${fmt(c)}$</button>`;
+ return `<div class="bcard ${locked?'locked':''} ${l?'owned':''} bg-${id}"><div class="bic">${b.i}</div><div class="bt"><h3>${b.n} <span class="lvl">سطح ${fmt(l)}</span></h3><p>${b.d}</p><div class="pips">${pips}</div>${btn}</div></div>`;
+}
+
+/* ---------- research (real time, 60 min each) ---------- */
+const rsCost=id=>Math.round(RS[id].cash*(1-Math.min(.4,lv('lab')*.08)));
+function startRes(id){
+ const w=s.w,r=RS[id];if(!r||w.done[id]||w.cur)return;
+ if(!lv('lab')){toast('ابتدا «مرکز تحقیقات» را در بخش ساخت‌وساز بسازید.','warn');return}
+ if(r.req&&!w.done[r.req]){toast('ابتدا ریسرچ پیش‌نیاز را کامل کنید.','warn');return}
+ const c=rsCost(id);if(s.cash<c){toast('بودجه کافی نیست.','warn');return}
+ s.cash-=c;w.cur={id,end:Date.now()+RES_TIME};toast('🔬 ریسرچ «'+r.n+'» شروع شد (۶۰ دقیقه).','good');commit();
+}
+function checkRes(){
+ const w=s.w;if(!w.cur||Date.now()<w.cur.end)return false;
+ const r=RS[w.cur.id];w.done[r.id]=1;w.cur=null;if(r.g)w.net=Math.max(w.net,r.g);
+ s.fame+=2;notify('✅ ریسرچ «'+r.n+'» کامل شد!','good');commit();return true;
+}
+const speedCost=()=>s.w.cur?Math.max(1,Math.ceil((s.w.cur.end-Date.now())/60000))*20:0;
+function speedRes(){const c=speedCost();if(!c)return;if(s.cash<c){toast('بودجه کافی نیست.','warn');return}s.cash-=c;s.w.cur.end=Date.now();checkRes()}
+function fmtTime(ms){ms=Math.max(0,ms);const t=Math.ceil(ms/1000),m=Math.floor(t/60),x=t%60;return fmt(m)+':'+String(x).padStart(2,'0').replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d])}
+
+/* ---------- army ---------- */
+const trainCost=t=>Math.round(UNIT[t].cash*(1-Math.min(.3,lv('hq')*.03)));
+function train(t,n){
+ const u=UNIT[t],w=s.w;if(u.need&&!has(u.need)){toast('ابتدا ریسرچ «'+RS[u.need].n+'» را کامل کنید.','warn');return}
+ const room=Math.floor((troopCap()-troopUsed())/u.cap);n=Math.min(n,room);
+ if(n<1){toast('ظرفیت پادگان پر است؛ پادگان را ارتقا دهید.','warn');return}
+ const afford=Math.floor(s.cash/trainCost(t));n=Math.min(n,afford);
+ if(n<1){toast('بودجه کافی نیست.','warn');return}
+ s.cash-=n*trainCost(t);w.u[t]+=n;s.report=fmt(n)+' '+u.n+' آموزش دیدند.';toast('🪖 '+s.report,'good');commit();
+}
+
+/* ---------- AI cities, relations, diplomacy ---------- */
+const clampR=v=>Math.max(-100,Math.min(100,v));
+const allyOf=id=>!!s.w.mine&&s.w.cal[id]===s.w.mine;
+const alName=id=>id==='me'?(s.w.alName||'اتحاد من'):(ALS.find(a=>a.id===id)||{n:'—'}).n;
+function relInfo(r){return r>=60?{c:'good',t:'دوست'}:r>=20?{c:'good',t:'مثبت'}:r>-20?{c:'ok',t:'خنثی'}:r>-60?{c:'bad',t:'تیره'}:{c:'bad',t:'خصمانه'}}
+function pay(c){if(s.cash<c){toast('بودجه کافی نیست.','warn');return false}s.cash-=c;return true}
+function dGift(id){const x=s.w.cs[id];if(!pay(200))return;x.rel=clampR(x.rel+12);toast('🎁 هدیه پذیرفته شد؛ رابطه بهتر شد.','good');commit()}
+function dInsult(id){if(allyOf(id))return;const x=s.w.cs[id];x.rel=clampR(x.rel-15);toast('📢 تبلیغات منفی؛ رابطه بدتر شد.','warn');commit()}
+function dSanction(id){const x=s.w.cs[id];if(allyOf(id)||x.sanc>0)return;if(!pay(150))return;x.sanc=10;x.trade=false;x.rel=clampR(x.rel-20);notify('🚫 تحریم '+cityOf(id).n+' برای ۱۰ نوبت اعمال شد.','warn');commit()}
+function dTrade(id){const x=s.w.cs[id];
+ if(x.trade){x.trade=false;toast('قرارداد تجاری لغو شد.','warn');commit();return}
+ if(x.st==='war'||x.sanc>0||x.rel<15){toast('برای تجارت رابطه باید ≥ ۱۵ و بدون جنگ/تحریم باشد.','warn');return}
+ if(!pay(150))return;x.trade=true;notify('📦 قرارداد تجاری با '+cityOf(id).n+' بسته شد.','good');commit()}
+function declareWar(id,quiet){const x=s.w.cs[id];
+ if(allyOf(id)){toast('با متحد نمی‌توان جنگید؛ ابتدا از اتحاد خارج شوید.','warn');return false}
+ if(x.st==='war')return true;if(x.truce>0){toast('آتش‌بس برقرار است ('+fmt(x.truce)+' نوبت).','warn');return false}
+ x.st='war';x.rel=clampR(x.rel-40);x.trade=false;s.w.st.dw++;
+ CITIES.forEach(c=>{if(c.id!==id&&s.w.cal[c.id]&&s.w.cal[c.id]===s.w.cal[id])s.w.cs[c.id].rel=clampR(s.w.cs[c.id].rel-15)});
+ if(!quiet)notify('⚔️ به '+cityOf(id).n+' اعلام جنگ کردید.','bad');return true}
+function dWar(id){if(declareWar(id))commit()}
+function dPeace(id){const x=s.w.cs[id];if(x.st!=='war')return;if(!pay(150))return;
+ if(rnd()<Math.max(.1,Math.min(.9,.45+x.rel/200))){x.st='peace';x.truce=6;x.rel=clampR(x.rel+10);notify('🕊️ صلح با '+cityOf(id).n+' برقرار شد (آتش‌بس ۶ نوبت).','good')}
+ else notify('🕊️ '+cityOf(id).n+' پیشنهاد صلح را رد کرد.','warn');commit()}
+
+/* ---------- alliances + chat ---------- */
+const members=id=>CITIES.filter(c=>s.w.cal[c.id]===id);
+function joinAl(id){const w=s.w,m=members(id);if(w.mine)return;
+ if(m.some(c=>w.cs[c.id].st==='war')){toast('با یکی از اعضا در جنگ هستید.','warn');return}
+ const avg=m.reduce((n,c)=>n+w.cs[c.id].rel,0)/Math.max(1,m.length);
+ if(avg<25){toast('میانگین رابطه با اعضا باید ≥ ۲۵ باشد (اکنون '+fmt(Math.round(avg))+').','warn');return}
+ if(!pay(200))return;w.mine=id;m.forEach(c=>{w.cs[c.id].rel=clampR(w.cs[c.id].rel+10)});
+ addChat(id,m[0]?m[0].o:'سیستم','به «'+alName(id)+'» خوش آمدی، '+s.mayor+'!',false);notify('🛡️ به «'+alName(id)+'» پیوستید.','good');commit()}
+function createAl(){const el=$('alNew');const nm=(el.value||'').trim().slice(0,24);
+ if(nm.length<3){toast('نام اتحاد حداقل ۳ حرف باشد.','warn');return}if(s.w.mine)return;if(!pay(500))return;
+ s.w.mine='me';s.w.alName=nm;addChat('me','سیستم','اتحاد «'+nm+'» تأسیس شد. کشورها را دعوت کنید.',false);notify('🛡️ اتحاد «'+nm+'» تأسیس شد.','good');commit()}
+function inviteAl(id){const w=s.w;if(w.mine!=='me'||w.cal[id])return;const x=w.cs[id];
+ if(x.rel<50){toast('رابطه باید ≥ ۵۰ باشد (دوستی بیشتر: هدیه یا تجارت).','warn');return}if(x.st==='war')return;if(!pay(100))return;
+ w.cal[id]='me';addChat('me',cityOf(id).o,'ممنون از دعوت! از امروز در کنار شما هستیم.',false);notify('🤝 '+cityOf(id).n+' به اتحاد شما پیوست.','good');commit()}
+function leaveAl(){const w=s.w;if(!w.mine)return;if(!confirm('از «'+alName(w.mine)+'» خارج می‌شوید؟'))return;
+ if(w.mine==='me')CITIES.forEach(c=>{if(w.cal[c.id]==='me'){delete w.cal[c.id]}});
+ else members(w.mine).forEach(c=>{w.cs[c.id].rel=clampR(w.cs[c.id].rel-10)});
+ w.mine=null;notify('از اتحاد خارج شدید.','warn');commit()}
+function addChat(k,f,x,me){const c=s.w.chat;c[k]=c[k]||[];c[k].push({f:String(f).slice(0,24),x:String(x).slice(0,200),me:!!me});if(c[k].length>40)c[k].shift()}
+const CHAT_GEN=['موافقم، با هم قوی‌تریم! 💪','نیروهامون آماده‌ست.','مراقب باش؛ تحرکات مشکوکی در مرزها دیده می‌شه.','اگه کمک خواستی خبر بده.','بیایم تجارت رو گسترش بدیم؟','فایروالت رو ارتقا بده، حملات سایبری زیاد شده.','ریسرچ نسل بعد اینترنت رو شروع کردم!','گردشگرها این فصل زیاد بودن 🏖️'];
+const CHAT_WAR=['اگه حمله می‌کنی با هم هماهنگ کنیم.','دشمن رو دست‌کم نگیر؛ با تانک و جنگنده برو.','ما پشتتیم! 🛡️'];
+const CHAT_HI=['سلام شهردار! 👋','درود، خوش اومدی.','سلام، حال شهرت چطوره؟'];
+function sendChat(){const el=$('chatIn'),w=s.w;if(!w.mine)return;const x=(el.value||'').trim().slice(0,200);if(!x)return;
+ addChat(w.mine,s.mayor,x,true);el.value='';save();progressSaved();renderAl();
+ const key=w.mine;setTimeout(()=>{if(!s.w||s.w.mine!==key)return;const m=members(key);if(!m.length)return;
+  const c=m[Math.floor(Math.random()*m.length)];
+  const pool=/سلام|درود/.test(x)?CHAT_HI:/حمله|جنگ|نبرد/.test(x)?CHAT_WAR:CHAT_GEN;
+  addChat(key,c.o,pool[Math.floor(Math.random()*pool.length)],false);save();if(curPage==='al')renderAl()},1200+Math.random()*1500)}
+
+/* ---------- battles ---------- */
+function battleBox(o){
+ $('warModalBody').innerHTML=`<h3>${o.win?'🏆':'💥'} ${esc(o.title)}</h3><div class="notice">${esc(o.text).replace(/\n/g,'<br>')}</div><div class="brow">${o.rows.map(r=>`<div><small>${r[0]}</small><b>${r[1]}</b></div>`).join('')}</div><button onclick="closeWar()">باشه</button>`;
+ $('warModal').classList.remove('hidden')}
+function closeWar(){$('warModal').classList.add('hidden')}
+let selC='c1',prep={inf:0,tank:0,jet:0,st:'balanced',init:false};
+function sentOf(){const u=s.w.u;return{inf:Math.min(prep.inf,u.inf),tank:Math.min(prep.tank,u.tank),jet:Math.min(prep.jet,u.jet)}}
+function estimate(){const c=cityOf(selC),x=s.w.cs[selC],sn=sentOf(),ap=troopPw(sn)*atkMult()*STRAT[prep.st].a,dp=x.p*(1+c.dl*.06)*(x.cyber>0?.85:1),r=ap/Math.max(1,dp);
+ return{ap,dp,r,t:r<.7?'بسیار ضعیف ❌':r<.95?'ضعیف ⚠️':r<1.15?'مساوی ⚖️':r<1.5?'خوب ✅':'عالی 🏆'}}
+function launchAttack(){
+ const id=selC,c=cityOf(id),x=s.w.cs[id],sn=sentOf();
+ if(troopPw(sn)<=0){toast('هیچ نیرویی برای ارسال انتخاب نشده است.','warn');return}
+ if(!declareWar(id,true))return;
+ const sm=STRAT[prep.st],ap=troopPw(sn)*atkMult()*sm.a,dp=x.p*(1+c.dl*.06)*(x.cyber>0?.85:1);
+ const eff=ap*(.88+rnd()*.24)/Math.max(1,dp),win=eff>1;
+ const aF=Math.min(.9,(win?Math.max(.08,Math.min(.4,.35/eff)):Math.max(.45,Math.min(.85,.5+.2*(1-Math.min(eff,1)))))*sm.l);
+ const dF=win?Math.max(.25,Math.min(.8,.3*eff)):Math.max(.05,Math.min(.25,.2*eff));
+ const lost={},back={};let lostN=0,backN=0;
+ ['inf','tank','jet'].forEach(t=>{const l=Math.floor(sn[t]*aF),b=Math.floor(l*recov());lost[t]=l;back[t]=b;s.w.u[t]-=l-b;lostN+=l;backN+=b});
+ x.p=Math.max(4,x.p*(1-dF));let loot=0;
+ if(win){loot=Math.floor(x.cash*(eff>1.6?.45:.3));x.cash-=loot;s.cash+=loot;s.fame+=3;s.w.st.w++;x.rel=clampR(x.rel-35)}
+ else{s.w.st.l++;s.fame=Math.max(1,s.fame-1);x.rel=clampR(x.rel-20)}
+ const txt=(win?'پیروزی بر ':'شکست از ')+c.n+' — غنیمت '+fmt(loot)+'$، تلفات '+fmt(lostN-backN);
+ hist(txt,win,'atk');notify((win?'🏆 ':'💥 ')+txt,win?'good':'bad',true);
+ s.report=txt;
+ battleBox({win,title:win?'پیروزی در نبرد با '+c.n:'شکست در نبرد با '+c.n,text:(win?'نیروهای شما دفاع '+c.n+' را شکستند.':'دفاع '+c.n+' بسیار مستحکم بود.')+'\nاستراتژی: '+sm.n,
+  rows:[['قدرت شما',fmt(ap)],['قدرت دفاع دشمن',fmt(dp)],['غنیمت','$'+fmt(loot)],['تلفات',fmt(lostN)],['نجات‌یافته (بیمارستان)',fmt(backN)],['قدرت باقی‌ماندهٔ دشمن',fmt(x.p)]]});
+ commit();
+}
+function incoming(id){
+ const c=cityOf(id),x=s.w.cs[id],w=s.w;
+ const ap=x.p*(.5+rnd()*.4);
+ const help=CITIES.filter(k=>allyOf(k.id)).reduce((n,k)=>n+w.cs[k.id].p*.15,0);
+ const dp=(troopPw(w.u)+8+help)*defMult();
+ const eff=ap/Math.max(1,dp),atkWin=eff>1;
+ let loot=0,lostN=0,backN=0;
+ const dF=atkWin?Math.max(.1,.45*(1-Math.min(.5,lv('wall')*.05))):Math.max(.03,Math.min(.3,.18*eff));
+ ['inf','tank','jet'].forEach(t=>{const l=Math.floor(w.u[t]*dF),b=Math.floor(l*recov());w.u[t]-=l-b;lostN+=l;backN+=b});
+ if(atkWin){loot=Math.floor(s.cash*.2*(1-Math.min(.64,lv('storage')*.08)));s.cash-=loot;x.cash+=loot;s.pop=Math.floor(s.pop*.98);s.happy=clamp(s.happy-5);s.fame=Math.max(1,s.fame-2);w.st.dl++}
+ else{x.p*=.8;s.fame+=2;w.st.l+=0;w.st.dw+=0}
+ const txt=(atkWin?'شکست دفاعی: ':'دفاع موفق: ')+c.n+' حمله کرد — '+(atkWin?'غارت '+fmt(loot)+'$':'حمله دفع شد')+'، تلفات '+fmt(lostN-backN);
+ hist(txt,!atkWin,'def');notify((atkWin?'🔥 ':'🛡️ ')+txt,atkWin?'bad':'good');
+ return{win:!atkWin,id,ap,dp,loot,lostN,backN,txt};
+}
+function cyberAttack(id){
+ const w=s.w,c=cityOf(id),x=w.cs[id];
+ if(!has('cyber1')){toast('ابتدا ریسرچ «جنگ سایبری» را کامل کنید.','warn');return}
+ if(allyOf(id)){toast('متحد را نمی‌توان هک کرد.','warn');return}
+ if(w.cdCy>0){toast('تجهیزات سایبری در حال خنک‌شدن: '+fmt(w.cdCy)+' نوبت.','warn');return}
+ if(!pay(300))return;
+ const ch=Math.max(.15,Math.min(.9,.5+(has('cyberatk')?.15:0)+lv('datacenter')*.03-(.1+c.dl*.06)));w.cdCy=2;
+ if(rnd()<ch){const dur=3+(has('cyberatk')?1:0),st=Math.floor(x.cash*.1);x.cyber=dur;x.cash-=st;s.cash+=st;x.rel=clampR(x.rel-25);w.st.cy++;
+  const t='حمله سایبری به '+c.n+' موفق بود: اقتصاد '+fmt(dur)+' نوبت مختل، '+fmt(st)+'$ سرقت';hist(t,true,'cy');notify('💻 '+t,'good')}
+ else{x.rel=clampR(x.rel-10);const t='حمله سایبری به '+c.n+' توسط فایروال آن‌ها خنثی شد';hist(t,false,'cy');notify('💻 '+t,'bad')}
+ commit();
+}
+
+/* ---------- per-turn hook (called from nextTurn) ---------- */
+let pendingBattle=null;
+function warTurn(){
+ const w=s.w,L=[];
+ if(w.cdCy>0)w.cdCy--;
+ if(w.hit>0){w.hit--;if(!w.hit)L.push('اختلال سایبری برطرف شد.')}
+ CITIES.forEach(c=>{const x=w.cs[c.id];
+  x.p+=c.g*(x.cyber>0?.3:1)*(x.sanc>0?.5:1);x.cash+=c.rich*60*(x.cyber>0?0:1)*(x.sanc>0?.5:1);
+  if(x.cyber>0)x.cyber--;if(x.sanc>0)x.sanc--;if(x.truce>0)x.truce--;
+  if(x.trade){x.rel=clampR(x.rel+1);if(x.st==='war'||x.sanc>0)x.trade=false}
+  else if(w.cal[c.id]&&w.cal[c.id]===w.mine)x.rel=Math.max(x.rel,40);
+  else if(x.rel>0)x.rel=Math.max(0,x.rel-.5);else if(x.rel<0)x.rel=Math.min(0,x.rel+.5);
+ });
+ if(s.turn<=w.shield){if(s.turn===w.shield)L.push('سپر محافظتی اولیه تمام شد؛ شهرها اکنون می‌توانند به شما حمله کنند.');return L.join(' ')}
+ CITIES.forEach(c=>{const x=w.cs[c.id];if(allyOf(c.id))return;
+  if(x.st==='peace'&&x.truce===0&&x.rel<-20&&rnd()<c.ag*.3){x.st='war';x.trade=false;w.st.dw++;notify('⚔️ '+c.n+' به شما اعلام جنگ کرد!','bad');L.push(c.n+' اعلام جنگ کرد.')}
+  if(x.st==='war'&&rnd()<Math.min(.6,.15+c.ag*.5)){const r=incoming(c.id);L.push(r.txt+'.');pendingBattle=r}
+  if((x.st==='war'||x.rel<-40)&&rnd()<c.ag*.45){
+   if(rnd()<Math.max(.1,Math.min(.9,.65-cyberDef()))){w.hit=3;notify('💻 حملهٔ سایبری '+c.n+' موفق بود! درآمد ۳ نوبت مختل شد.','bad');L.push('حملهٔ سایبری '+c.n+' درآمد شما را مختل کرد.')}
+   else{notify('💻 حملهٔ سایبری '+c.n+' توسط دفاع سایبری شما دفع شد.','good');L.push('حملهٔ سایبری '+c.n+' دفع شد.')}}
+ });
+ if(w.mine&&Math.random()<.5){const m=members(w.mine);if(m.length){const c=m[Math.floor(Math.random()*m.length)];addChat(w.mine,c.o,CHAT_GEN[Math.floor(Math.random()*CHAT_GEN.length)],false)}}
+ const d=netDef();if(d>0)L.push('📶 اینترنت ضعیف است؛ شهروندان ناراضی‌اند (ریسرچ نسل بعد).');
+ if(tourists()>0)L.push('گردشگران: '+fmt(Math.round(tourists()*tourMult()))+'$ درآمد.');
+ return L.join(' ');
+}
+
+/* ---------- navigation / pages ---------- */
+const PAGES=['city','build','atk','war','dip','al','res','tour','status'];
+let curPage='city',wtab='army';
+const PTITLE={build:'🏗️ ساخت‌وساز',atk:'🗺️ نقشه حمله',war:'⚔️ مرکز جنگ',dip:'🤝 دیپلماسی',al:'🛡️ اتحاد',res:'🔬 ریسرچ',tour:'🏖️ گردشگری',status:'📊 وضعیت شهر'};
+function showPage(p){
+ if(!PAGES.includes(p))p='city';curPage=p;
+ PAGES.forEach(x=>{const e=$(x==='city'?'page-city':'pg-'+x);if(e){e.classList.toggle('hidden',x!==p);if(x===p){e.classList.remove('pg-in');void e.offsetWidth;e.classList.add('pg-in')}}});
+ document.querySelectorAll('#topnav [data-p]').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+ renderPages();const n=$('topnav');if(n&&p!=='city')window.scrollTo({top:Math.max(0,n.offsetTop-6),behavior:'smooth'});
+}
+const head=p=>`<div class="phead"><h2>${PTITLE[p]}</h2><button class="secondary" onclick="showPage('city')">↩ بازگشت به شهر</button></div>`;
+function renderPages(){({build:renderBuild,atk:renderAtk,war:renderWar,dip:renderDip,al:renderAl,res:renderRes,tour:renderTour,status:renderStatus})[curPage]?.()}
+function bar(p,c){return `<div class="bar"><div class="fill ${c||'good'}" style="width:${Math.max(0,Math.min(100,p))}%"></div></div>`}
+function renderBuild(){
+ const grp=(t,l)=>`<h3 class="sub">${t}</h3><div class="bgrid">${l.map(bCard).join('')}</div>`;
+ const k=g=>Object.keys(MB).filter(i=>MB[i].g===g);
+ $('pg-build').innerHTML=head('build')+`<div class="notice">ساختمان‌های ساختهٔ شما روی نقشهٔ شهر هم نمایش داده می‌شوند. هزینهٔ هر سطح ۶۵٪ بیشتر از سطح قبل است و هر سطح هزینهٔ نگهداری دارد.</div>`
+  +grp('🪖 ساختمان‌های نظامی',k('mil'))+grp('💻 فناوری',k('tech'))+grp('🏖️ گردشگری (با ریسرچ باز می‌شود)',k('tour'));
+}
+function renderTour(){
+ const t=tourists(),m=tourMult();
+ $('pg-tour').innerHTML=head('tour')+`<div class="stats3"><div class="stat"><small>🧳 ظرفیت گردشگر</small><b>${fmt(t)}</b></div><div class="stat"><small>💵 درآمد گردشگری / نوبت</small><b>${fmt(Math.round(t*m))} $</b></div><div class="stat"><small>📈 ضریب جذابیت</small><b>${fmt(Math.round(m*100))}٪</b></div></div>
+ <div class="notice">جذابیت با رضایت و اینترنت خوب بالا می‌رود. جنگ (−۳۰٪) و حملهٔ سایبری (−۵۰٪) گردشگران را فراری می‌دهد.${t?'':' هنوز ساختار گردشگری ندارید؛ ابتدا ریسرچ «صنعت هتلداری» را کامل کنید.'}</div>
+ <div class="bgrid">${Object.keys(MB).filter(i=>MB[i].g==='tour').map(bCard).join('')}</div>
+ <div class="row" style="margin-top:12px"><button class="secondary" onclick="showPage('res')">🔬 رفتن به ریسرچ گردشگری</button></div>`;
+}
+function renderRes(){
+ const w=s.w;let cur='';
+ if(w.cur){const r=RS[w.cur.id],left=w.cur.end-Date.now(),p=100-left/RES_TIME*100;
+  cur=`<div class="panel inner"><h3>⏳ در حال ریسرچ: ${r.i} ${esc(r.n)}</h3>${bar(p,'ok')}<div class="row"><b id="resLeft">${fmtTime(left)}</b><button class="gold" onclick="speedRes()">⚡ تسریع · ${fmt(speedCost())}$</button></div><small class="muted">ریسرچ در زمان واقعی انجام می‌شود (حتی اگر بازی بسته باشد).</small></div>`}
+ else cur=`<div class="notice">${lv('lab')?'ریسرچ فعالی ندارید؛ یکی را انتخاب کنید (هر ریسرچ ۶۰ دقیقه).':'برای ریسرچ ابتدا «مرکز تحقیقات» را بسازید.'} ${lv('lab')?'':'<button onclick="showPage(\'build\')">🏗️ ساخت‌وساز</button>'}</div>`;
+ const cat=c=>`<h3 class="sub">${RCAT[c]}</h3><div class="bgrid">${Object.values(RS).filter(r=>r.c===c).map(r=>{
+  const done=w.done[r.id],act=w.cur&&w.cur.id===r.id,lock=r.req&&!w.done[r.req],cost=rsCost(r.id);
+  const b=done?'<button disabled>✔ انجام شد</button>':act?'<button disabled>⏳ در حال انجام</button>':lock?`<button disabled>🔒 ابتدا «${esc(RS[r.req].n)}»</button>`:`<button onclick="startRes('${r.id}')" ${(w.cur||s.cash<cost||!lv('lab'))?'disabled':''}>شروع · ${fmt(cost)}$ · ۶۰ دقیقه</button>`;
+  return `<div class="bcard ${done?'owned':''} ${lock?'locked':''}"><div class="bic">${r.i}</div><div class="bt"><h3>${esc(r.n)}</h3><p>${r.d}</p>${b}</div></div>`}).join('')}</div>`;
+ $('pg-res').innerHTML=head('res')+`<div class="notice">📶 نسل اینترنت فعلی: <b>${fmt(w.net)}G</b> · نیاز شهر شما: <b>${fmt(netReq())}G</b> ${netDef()>0?'<span class="chip bad">ضعیف — مردم ناراضی‌اند</span>':'<span class="chip good">کافی</span>'}</div>`+cur+cat('mil')+cat('cyber')+cat('net')+cat('tour');
+}
+function selCity(id){selC=id;prep.init=false;renderAtk()}
+function setPrep(k,v){const mx=s.w.u[k];prep[k]=Math.max(0,Math.min(mx,Math.floor(Number(v))||0));const e=$('est');if(e){const r=estimate();e.innerHTML=`قدرت شما <b>${fmt(r.ap)}</b> · دفاع دشمن <b>${fmt(r.dp)}</b> · پیش‌بینی: <b>${r.t}</b>`}}
+function setStrat(v){prep.st=STRAT[v]?v:'balanced';renderAtk()}
+function renderAtk(){
+ const w=s.w;
+ if(!prep.init){prep.inf=w.u.inf;prep.tank=w.u.tank;prep.jet=w.u.jet;prep.init=true}
+ ['inf','tank','jet'].forEach(k=>{prep[k]=Math.min(prep[k],w.u[k])});
+ const c=cityOf(selC),x=w.cs[selC],ally=allyOf(selC);
+ const col=id=>allyOf(id)?'#36d6b0':w.cs[id].st==='war'?'#ff6f91':'#7fb1ff';
+ let svg=`<svg viewBox="0 0 100 78" class="amap" role="img" aria-label="نقشه حمله"><defs><pattern id="gr" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M6 0H0V6" fill="none" stroke="rgba(255,255,255,.06)" stroke-width=".3"/></pattern></defs><rect width="100" height="78" fill="url(#gr)"/>`;
+ CITIES.forEach(k=>{svg+=`<line x1="${HOME.x}" y1="${HOME.y}" x2="${k.x}" y2="${k.y}" stroke="${col(k.id)}" stroke-opacity="${k.id===selC?.9:.28}" stroke-width="${k.id===selC?.6:.3}" stroke-dasharray="${w.cs[k.id].st==='war'?'0':'1.5 1.2'}"/>`});
+ CITIES.forEach(k=>{const st=w.cs[k.id];svg+=`<g class="cnode ${k.id===selC?'sel':''}" tabindex="0" role="button" aria-label="${esc(k.n)}" onclick="selCity('${k.id}')" onkeydown="if(event.key==='Enter')selCity('${k.id}')"><circle cx="${k.x}" cy="${k.y}" r="4.6" fill="#0c2231" stroke="${col(k.id)}" stroke-width="${k.id===selC?1.1:.6}"/><text x="${k.x}" y="${k.y+1.6}" text-anchor="middle" font-size="5">${k.i}</text><text x="${k.x}" y="${k.y+9}" text-anchor="middle" font-size="2.9" fill="#e8f1ff">${esc(k.n)}</text><text x="${k.x}" y="${k.y+12.3}" text-anchor="middle" font-size="2.5" fill="#ffd978">⚔ ${fmt(st.p)}</text></g>`});
+ svg+=`<g><circle cx="${HOME.x}" cy="${HOME.y}" r="5.2" fill="#14412f" stroke="#ffd978" stroke-width="1"/><text x="${HOME.x}" y="${HOME.y+1.8}" text-anchor="middle" font-size="5.6">🏙️</text><text x="${HOME.x}" y="${HOME.y+10}" text-anchor="middle" font-size="3" fill="#ffd978">شهر شما</text></g></svg>`;
+ const e=estimate(),sm=STRAT[prep.st];
+ const nobody=troopPw(w.u)<=0;
+ const panel=`<div class="panel inner"><div class="row"><h3 style="margin:0">${c.i} ${esc(c.n)}</h3><span class="chip ${ally?'good':x.st==='war'?'bad':'ok'}">${ally?'متحد':x.st==='war'?'در جنگ':x.truce>0?'آتش‌بس':'صلح'}</span></div>
+ <div class="kv"><span>👤 مالک</span><b>${esc(c.o)}</b></div><div class="kv"><span>⚔️ قدرت نظامی</span><b>${fmt(x.p)}</b></div><div class="kv"><span>🛡️ سطح دفاع</span><b>${fmt(c.dl)}</b></div><div class="kv"><span>💰 منابع</span><b>${fmt(x.cash)} $</b></div><div class="kv"><span>🤝 رابطه</span><b>${fmt(Math.round(x.rel))} (${relInfo(x.rel).t})</b></div>
+ ${x.cyber>0?`<div class="chip bad">💻 اقتصاد مختل: ${fmt(x.cyber)} نوبت</div>`:''}${x.sanc>0?`<div class="chip ok">🚫 تحریم: ${fmt(x.sanc)} نوبت</div>`:''}
+ <h4>🪖 آماده‌سازی حمله</h4>
+ <div class="prep">${['inf','tank','jet'].map(k=>`<label>${UNIT[k].i} ${UNIT[k].n} <small class="muted">(دارید: ${fmt(w.u[k])})</small><input type="number" min="0" max="${w.u[k]}" value="${prep[k]}" ${w.u[k]?'':'disabled'} oninput="setPrep('${k}',this.value)"></label>`).join('')}</div>
+ <label class="sel">استراتژی<select onchange="setStrat(this.value)">${Object.keys(STRAT).map(k=>`<option value="${k}" ${k===prep.st?'selected':''}>${STRAT[k].n} — ${STRAT[k].d}</option>`).join('')}</select></label>
+ <div class="est" id="est">قدرت شما <b>${fmt(e.ap)}</b> · دفاع دشمن <b>${fmt(e.dp)}</b> · پیش‌بینی: <b>${e.t}</b></div>
+ <div class="row wrap"><button class="danger" onclick="launchAttack()" ${ally||nobody||(x.truce>0&&x.st!=='war')?'disabled':''}>⚔️ ${x.st==='war'?'حمله':'اعلام جنگ و حمله'}</button><button class="secondary" onclick="cyberAttack('${c.id}')" ${ally?'disabled':''}>💻 حمله سایبری</button>${x.st==='war'?`<button class="secondary" onclick="dPeace('${c.id}')">🕊️ صلح · ۱۵۰$</button>`:''}</div>
+ ${nobody?'<small class="muted">نیرویی ندارید؛ در «جنگ ← ارتش» آموزش دهید.</small>':''}</div>`;
+ const list=CITIES.map(k=>{const st=w.cs[k.id];return `<div class="ccard ${k.id===selC?'sel':''}"><div><b>${k.i} ${esc(k.n)}</b> <small class="muted">${esc(k.o)}</small></div><div class="cmeta"><span>⚔️ ${fmt(st.p)}</span><span>🛡️ ${fmt(k.dl)}</span><span>💰 ${fmt(st.cash)}$</span></div><button class="${st.st==='war'?'danger':'secondary'}" onclick="selCity('${k.id}')">انتخاب هدف</button></div>`}).join('');
+ $('pg-atk').innerHTML=head('atk')+`<div class="atkgrid"><div class="panel inner mapwrap">${svg}<small class="muted">روی یک شهر بزنید تا هدف انتخاب شود. 🟦 صلح · 🟥 جنگ · 🟩 متحد</small></div>${panel}</div><h3 class="sub">🌍 شهرهای دیگر</h3><div class="clist">${list}</div>`;
+}
+function renderWar(){
+ const w=s.w,tabs=[['army','🪖 ارتش'],['hist','📜 نبردها'],['def','🛡️ دفاع'],['cyber','💻 سایبری']];
+ let body='';
+ if(wtab==='army'){
+  body=`<div class="kv"><span>ظرفیت پادگان</span><b>${fmt(troopUsed())} / ${fmt(troopCap())}</b></div>${bar(troopUsed()/troopCap()*100,'ok')}<div class="kv"><span>قدرت کل ارتش</span><b>${fmt(troopPw(w.u)*atkMult())}</b></div>
+  <div class="bgrid">${Object.keys(UNIT).map(t=>{const u=UNIT[t],lock=u.need&&!has(u.need),c=trainCost(t);return `<div class="bcard ${lock?'locked':''}"><div class="bic">${u.i}</div><div class="bt"><h3>${u.n} <span class="lvl">${fmt(w.u[t])} واحد</span></h3><p>قدرت ${fmt(u.pw)} · ظرفیت ${fmt(u.cap)} · نگهداری ${fmt(u.up)}$/نوبت</p>${lock?`<button disabled>🔒 ریسرچ «${esc(RS[u.need].n)}»</button>`:`<div class="row wrap">${[1,5,10].map(n=>`<button onclick="train('${t}',${n})" ${s.cash<c?'disabled':''}>+${fmt(n)} · ${fmt(c*n)}$</button>`).join('')}</div>`}</div></div>`}).join('')}</div>
+  <div class="row wrap"><button class="secondary" onclick="showPage('build')">🏗️ ارتقای پادگان و ساختمان‌ها</button></div>`}
+ if(wtab==='hist'){body=w.hist.length?w.hist.map(h=>`<div class="hrow ${h.win?'win':'lose'}"><span>${h.k==='cy'?'💻':h.k==='def'?'🛡️':'⚔️'} ${esc(h.x)}</span><small>نوبت ${fmt(h.t)}</small></div>`).join(''):'<div class="notice">هنوز نبردی ثبت نشده است.</div>';
+  body=`<div class="stats3"><div class="stat"><small>🏆 پیروزی</small><b>${fmt(w.st.w)}</b></div><div class="stat"><small>💥 شکست</small><b>${fmt(w.st.l)}</b></div><div class="stat"><small>🔥 شکست دفاعی</small><b>${fmt(w.st.dl)}</b></div></div>`+body}
+ if(wtab==='def'){const help=CITIES.filter(k=>allyOf(k.id)).reduce((n,k)=>n+w.cs[k.id].p*.15,0),dp=(troopPw(w.u)+8+help)*defMult();
+  body=`<div class="kv"><span>🛡️ قدرت دفاعی شهر</span><b>${fmt(dp)}</b></div><div class="kv"><span>ضریب دفاع (برج، دیوار، ریسرچ)</span><b>×${(defMult()).toFixed(2).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d])}</b></div><div class="kv"><span>کمک متحدان</span><b>+${fmt(help)}</b></div><div class="kv"><span>بازگشت تلفات</span><b>${fmt(Math.round(recov()*100))}٪</b></div><div class="kv"><span>محافظت انبار از غارت</span><b>${fmt(Math.min(64,lv('storage')*8))}٪</b></div>
+  <div class="notice">${s.turn<=w.shield?'🛡️ سپر اولیه تا نوبت '+fmt(w.shield)+' فعال است.':'سپر اولیه تمام شده؛ شهرهای در جنگ با شما ممکن است حمله کنند.'}</div>
+  <h4>شهرهای در جنگ با شما</h4>${CITIES.filter(k=>w.cs[k.id].st==='war').map(k=>`<div class="hrow lose"><span>${k.i} ${esc(k.n)} — قدرت ${fmt(w.cs[k.id].p)}</span><button class="secondary" onclick="dPeace('${k.id}')">صلح</button></div>`).join('')||'<div class="notice">در حال حاضر با کسی در جنگ نیستید.</div>'}
+  <div class="row wrap"><button class="secondary" onclick="showPage('build')">🗼 ارتقای برج و دیوار</button></div>`}
+ if(wtab==='cyber'){
+  body=`<div class="stats3"><div class="stat"><small>🛡️ دفاع سایبری</small><b>${fmt(Math.round(cyberDef()*100))}٪</b></div><div class="stat"><small>⏱️ خنک‌سازی حمله</small><b>${fmt(w.cdCy)} نوبت</b></div><div class="stat"><small>${w.hit>0?'🚨 اختلال':'✅ وضعیت'}</small><b>${w.hit>0?fmt(w.hit)+' نوبت':'سالم'}</b></div></div>
+  ${has('cyber1')?'':'<div class="notice">حملهٔ سایبری با ریسرچ «جنگ سایبری» باز می‌شود. <button onclick="showPage(\'res\')">🔬 ریسرچ</button></div>'}
+  <div class="notice">حملهٔ سایبری موفق، سیستم درآمد شهر هدف را چند نوبت مختل می‌کند و بخشی از خزانه‌اش را می‌دزدد. هزینه ۳۰۰$ و ۲ نوبت زمان خنک‌سازی دارد. دفاع سایبری شما با ریسرچ فایروال و ساخت «مرکز امنیت سایبری» بالا می‌رود.</div>
+  <div class="clist">${CITIES.map(k=>`<div class="ccard"><div><b>${k.i} ${esc(k.n)}</b></div><div class="cmeta"><span>دفاع سایبری ≈ ${fmt(Math.round((.1+k.dl*.06)*100))}٪</span>${w.cs[k.id].cyber>0?`<span class="chip bad">مختل ${fmt(w.cs[k.id].cyber)}</span>`:''}</div><button onclick="cyberAttack('${k.id}')" ${(!has('cyber1')||allyOf(k.id))?'disabled':''}>💻 هک</button></div>`).join('')}</div>
+  <h4>سوابق سایبری</h4>${w.hist.filter(h=>h.k==='cy').map(h=>`<div class="hrow ${h.win?'win':'lose'}"><span>${esc(h.x)}</span><small>نوبت ${fmt(h.t)}</small></div>`).join('')||'<small class="muted">سابقه‌ای نیست.</small>'}`}
+ $('pg-war').innerHTML=head('war')+`<div class="tabs">${tabs.map(t=>`<button class="${t[0]===wtab?'on':''}" onclick="wtab='${t[0]}';renderWar()">${t[1]}</button>`).join('')}</div><div class="panel inner">${body}</div>`;
+}
+function renderDip(){
+ const w=s.w;
+ $('pg-dip').innerHTML=head('dip')+`<div class="notice">رابطهٔ خوب = تجارت و اتحاد؛ رابطهٔ بد = تحریم، جنگ و حملهٔ سایبری. رابطه با گذر زمان به‌آرامی به حالت خنثی برمی‌گردد. هر شهری با رابطهٔ زیر ‎−۶۰ شما را تحریم می‌کند (درآمد −۴٪).</div><div class="clist big">${CITIES.map(k=>{const x=w.cs[k.id],ri=relInfo(x.rel),al=w.cal[k.id];
+ return `<div class="ccard dip"><div class="row"><b>${k.i} ${esc(k.n)}</b><span class="chip ${ri.c}">${ri.t} · ${fmt(Math.round(x.rel))}</span></div>
+ <small class="muted">${esc(k.o)}${al?' · عضو «'+esc(alName(al))+'»':''}${allyOf(k.id)?' · 🤝 متحد شما':''}</small>${bar((x.rel+100)/2,ri.c)}
+ <div class="tags">${x.st==='war'?'<span class="chip bad">⚔️ جنگ</span>':''}${x.truce>0?'<span class="chip ok">🕊️ آتش‌بس '+fmt(x.truce)+'</span>':''}${x.trade?'<span class="chip good">📦 تجارت</span>':''}${x.sanc>0?'<span class="chip bad">🚫 تحریم '+fmt(x.sanc)+'</span>':''}</div>
+ <div class="row wrap"><button onclick="dGift('${k.id}')">🎁 هدیه · ۲۰۰$</button><button class="secondary" onclick="dInsult('${k.id}')" ${allyOf(k.id)?'disabled':''}>📢 تبلیغات منفی</button><button class="secondary" onclick="dTrade('${k.id}')">${x.trade?'لغو تجارت':'📦 تجارت · ۱۵۰$'}</button><button class="secondary" onclick="dSanction('${k.id}')" ${x.sanc>0||allyOf(k.id)?'disabled':''}>🚫 تحریم · ۱۵۰$</button>
+ ${x.st==='war'?`<button onclick="dPeace('${k.id}')">🕊️ صلح · ۱۵۰$</button>`:`<button class="danger" onclick="dWar('${k.id}')" ${allyOf(k.id)?'disabled':''}>⚔️ اعلام جنگ</button>`}
+ ${w.mine==='me'&&!w.cal[k.id]?`<button onclick="inviteAl('${k.id}')">🛡️ دعوت به اتحاد</button>`:''}</div></div>`}).join('')}</div>`;
+}
+function renderAl(){
+ const w=s.w;let body;
+ if(!w.mine){
+  body=`<div class="notice">هنوز عضو هیچ اتحادی نیستید. به یک اتحاد بپیوندید یا اتحاد خودتان را بسازید. هر اتحاد چت اختصاصی دارد و متحدان در دفاع کمک می‌کنند.</div>
+  <div class="clist big">${ALS.map(a=>{const m=members(a.id),avg=Math.round(m.reduce((n,c)=>n+w.cs[c.id].rel,0)/Math.max(1,m.length));return `<div class="ccard"><div class="row"><b>🛡️ ${esc(a.n)}</b><span class="chip ${avg>=25?'good':'bad'}">میانگین رابطه ${fmt(avg)}</span></div><small class="muted">اعضا: ${m.map(c=>esc(c.n)).join('، ')}</small><div class="row"><small class="muted">ورود: ۲۰۰$ و رابطه ≥ ۲۵</small><button onclick="joinAl('${a.id}')">پیوستن</button></div></div>`}).join('')}
+  <div class="ccard"><b>✨ ساخت اتحاد جدید (۵۰۰$)</b><div class="row wrap"><input id="alNew" maxlength="24" placeholder="نام اتحاد"><button onclick="createAl()">تأسیس</button></div></div></div>`;
+ }else{
+  const m=members(w.mine),ch=(w.chat[w.mine]||[]);
+  body=`<div class="row wrap"><h3 style="margin:0">🛡️ ${esc(alName(w.mine))}</h3><button class="secondary" onclick="leaveAl()">خروج از اتحاد</button></div>
+  <div class="tags">${m.map(c=>`<span class="chip good">${c.i} ${esc(c.n)} ⚔️${fmt(w.cs[c.id].p)}</span>`).join('')||'<small class="muted">هنوز عضوی ندارید؛ از «دیپلماسی» دعوت کنید.</small>'}</div>
+  <div class="notice">🤝 مزایا: متحدان به شما حمله نمی‌کنند و ۱۵٪ قدرتشان در دفاع به شما کمک می‌کند.</div>
+  <h4>💬 چت اتحاد</h4><div class="chat" id="chatBox">${ch.map(x=>`<div class="msg ${x.me?'me':''}"><small>${esc(x.f)}</small><span>${esc(x.x)}</span></div>`).join('')||'<small class="muted">پیامی نیست؛ اولین پیام را بفرستید.</small>'}</div>
+  <form class="row" onsubmit="event.preventDefault();sendChat()"><input id="chatIn" maxlength="200" placeholder="پیام خود را بنویسید…" autocomplete="off"><button>ارسال</button></form>
+  <small class="muted">چت این نسخه محلی است: اعضای هوش‌مصنوعی پاسخ می‌دهند. برای چت واقعی بین بازیکنان به سرور (مثلاً Supabase Realtime) نیاز است.</small>`;
+ }
+ $('pg-al').innerHTML=head('al')+`<div class="panel inner">${body}</div>`;
+ const cb=$('chatBox');if(cb)cb.scrollTop=cb.scrollHeight;
+}
+function renderStatus(){
+ const w=s.w,E=econ(),n=calcNeeds();
+ const row=(a,b)=>`<div class="kv"><span>${a}</span><b>${b}</b></div>`;
+ $('pg-status').innerHTML=head('status')+`<div class="stats3"><div class="stat"><small>⚔️ قدرت ارتش</small><b>${fmt(troopPw(w.u)*atkMult())}</b></div><div class="stat"><small>🛡️ دفاع</small><b>${fmt((troopPw(w.u)+8)*defMult())}</b></div><div class="stat"><small>📶 اینترنت</small><b>${fmt(w.net)}G / ${fmt(netReq())}G</b></div></div>
+ <div class="cols2"><div class="panel inner"><h3>💰 اقتصاد (هر نوبت)</h3>${row('درآمد پایه',fmt(E.base)+' $')}${row('اثر اینترنت',(E.netMul>=1?'+':'−')+fmt(Math.abs(Math.round((E.netMul-1)*100)))+'٪')}${row('گردشگری',fmt(E.tour)+' $')}${row('تجارت',fmt(E.trade)+' $')}${row('اختلال سایبری',E.cyberLoss?'−'+fmt(E.cyberLoss)+' $':'—')}${row('اثر تحریم',E.sancLoss?'−'+fmt(E.sancLoss)+' $':'—')}${row('کل درآمد','<b class="gold">'+fmt(E.inc)+' $</b>')}${row('هزینه‌ها (با نگهداری ارتش و ساختمان‌ها)',fmt(E.exp)+' $')}${row('خالص',(E.net>=0?'+':'−')+fmt(Math.abs(E.net))+' $')}</div>
+ <div class="panel inner"><h3>🌐 وضعیت کلی</h3>${row('رضایت خدمات شهر',fmt(n.overall)+'٪')}${row('ریسرچ‌های انجام‌شده',fmt(Object.keys(w.done).length)+' / '+fmt(Object.keys(RS).length))}${row('ریسرچ فعال',w.cur?esc(RS[w.cur.id].n):'—')}${row('اتحاد',w.mine?esc(alName(w.mine)):'—')}${row('قراردادهای تجاری',fmt(CITIES.filter(c=>w.cs[c.id].trade).length))}${row('شهرهای در جنگ',fmt(CITIES.filter(c=>w.cs[c.id].st==='war').length))}${row('تحریم‌کنندگان شما',fmt(sanctioners()))}${row('نبردها (برد/باخت)',fmt(w.st.w)+' / '+fmt(w.st.l))}${row('حمله‌های سایبری موفق',fmt(w.st.cy))}${row('وضعیت سایبری',w.hit>0?'<span class="chip bad">مختل '+fmt(w.hit)+'</span>':'<span class="chip good">سالم</span>')}</div></div>
+ <div class="row wrap"><button onclick="showPage('res')">🔬 ریسرچ</button><button class="secondary" onclick="showPage('atk')">🗺️ نقشه حمله</button><button class="secondary" onclick="showPage('dip')">🤝 دیپلماسی</button></div>`;
+}
+function showLog(){
+ const w=s.w;w.unread=0;save();
+ $('warModalBody').innerHTML=`<h3>🔔 رویدادها</h3><div class="loglist">${w.log.map(l=>`<div class="hrow ${l.k==='bad'?'lose':l.k==='good'?'win':''}"><span>${esc(l.x)}</span><small>نوبت ${fmt(l.t)}</small></div>`).join('')||'<div class="notice">رویدادی ثبت نشده.</div>'}</div><button onclick="closeWar()">بستن</button>`;
+ $('warModal').classList.remove('hidden');warBadge();
+}
+function warBadge(){const b=$('bellN');if(b){b.textContent=s.w.unread?fmt(s.w.unread):'';b.style.display=s.w.unread?'grid':'none'}}
+function warRender(){
+ warBadge();
+ const d=netDef(),ch=$('netChip');if(ch){ch.className='chip '+(d>0?'bad':'good');ch.textContent=fmt(s.w.net)+'G'+(d>0?' · ضعیف':' · کافی')}
+ if(curPage!=='city')renderPages();
+}
+/* extra map tiles for the new buildings */
+const NEW_TILES={};Object.keys(MB).forEach(k=>{NEW_TILES[MB[k].i]={c:'landmark nb nb-'+k,t:MB[k].n,k}});
+function extraTiles(){const a=[];Object.keys(MB).forEach(k=>{if(lv(k))a.push(MB[k].i)});return a}
+// real-time tick: research countdown
+setInterval(()=>{try{if($('game').classList.contains('hidden'))return;if(checkRes())return;const e=$('resLeft');if(e&&s.w.cur)e.textContent=fmtTime(s.w.cur.end-Date.now())}catch{}},1000);
+
+/* ---------- Music: procedural Iranian-modal epic tracks + user files, auto-advance ---------- */
+const SCALES={shur:[0,150,300,500,700,800,1000],chahargah:[0,100,400,500,700,800,1100],homayoun:[0,150,400,500,700,800,1000],mahur:[0,200,400,500,700,900,1100],segah:[0,150,350,500,700,850,1000],bayat:[0,150,300,500,700,800,1000]};
+const GEN=[
+ {n:'نبرد در دشت‌های ایران (شور)',mode:'shur',root:146.83,bpm:96,seed:11},
+ {n:'رزم آریایی (چهارگاه)',mode:'chahargah',root:164.81,bpm:104,seed:22},
+ {n:'حماسهٔ سیمرغ (همایون)',mode:'homayoun',root:138.59,bpm:88,seed:33},
+ {n:'کاوهٔ آهنگر (ماهور)',mode:'mahur',root:155.56,bpm:112,seed:44},
+ {n:'سپاه جاویدان (سه‌گاه)',mode:'segah',root:130.81,bpm:92,seed:55},
+ {n:'پرچم ایران (بیات ترک)',mode:'bayat',root:146.83,bpm:100,seed:66}
+];
+const MU={ctx:null,mg:null,bus:null,i:0,on:false,end:0,audio:null,vol:.55,list:GEN.map((t,i)=>({n:t.n,k:'gen',g:i})),noise:null,tick:null};
+function mCtx(){if(!MU.ctx){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;MU.ctx=new C();MU.mg=MU.ctx.createGain();MU.mg.gain.value=MU.vol;MU.mg.connect(MU.ctx.destination);
+ const b=MU.ctx.createBuffer(1,MU.ctx.sampleRate,MU.ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;MU.noise=b}return MU.ctx}
+function mClear(){if(MU.bus){try{MU.bus.gain.setTargetAtTime(0,MU.ctx.currentTime,.05);const b=MU.bus;setTimeout(()=>{try{b.disconnect()}catch{}},400)}catch{}MU.bus=null}
+ if(MU.audio){try{MU.audio.pause();MU.audio.src=''}catch{}MU.audio=null}}
+function mGen(g){
+ const C=mCtx();if(!C)return false;const T=GEN[g],sc=SCALES[T.mode],bus=C.createGain();bus.connect(MU.mg);MU.bus=bus;
+ const t0=C.currentTime+.2,beat=60/T.bpm,bars=24,total=bars*4*beat;let sd=T.seed;const R=()=>{sd=(sd*1664525+1013904223)>>>0;return sd/4294967296};
+ const F=(d,o)=>{const oc=Math.floor(d/7),dd=((d%7)+7)%7;return T.root*Math.pow(2,(sc[dd]+1200*(oc+(o||0)))/1200)};
+ const note=(type,fr,st,dur,vol,lp,vib)=>{const o=C.createOscillator(),gn=C.createGain(),fl=C.createBiquadFilter();o.type=type;o.frequency.value=fr;fl.type='lowpass';fl.frequency.value=lp;
+  gn.gain.setValueAtTime(0,st);gn.gain.linearRampToValueAtTime(vol,st+.03);gn.gain.setTargetAtTime(vol*.7,st+.08,.3);gn.gain.setTargetAtTime(0,st+Math.max(.1,dur-.06),.05);
+  o.connect(fl);fl.connect(gn);gn.connect(bus);
+  if(vib){const l=C.createOscillator(),lg=C.createGain();l.frequency.value=5.2;lg.gain.value=fr*.006;l.connect(lg);lg.connect(o.frequency);l.start(st);l.stop(st+dur+.2)}
+  o.start(st);o.stop(st+dur+.2)};
+ const hit=(st,kind,vol)=>{if(kind==='dom'){const o=C.createOscillator(),gn=C.createGain();o.frequency.setValueAtTime(150,st);o.frequency.exponentialRampToValueAtTime(48,st+.18);gn.gain.setValueAtTime(vol,st);gn.gain.exponentialRampToValueAtTime(.001,st+.45);o.connect(gn);gn.connect(bus);o.start(st);o.stop(st+.5)}
+  else{const n=C.createBufferSource(),fl=C.createBiquadFilter(),gn=C.createGain();n.buffer=MU.noise;fl.type='bandpass';fl.frequency.value=3200;gn.gain.setValueAtTime(vol,st);gn.gain.exponentialRampToValueAtTime(.001,st+.07);n.connect(fl);fl.connect(gn);gn.connect(bus);n.start(st);n.stop(st+.1)}};
+ note('sawtooth',T.root/2,t0,total,.07,500);note('sine',T.root/2,t0,total,.12,300);note('sawtooth',T.root*.75,t0,total,.025,700);
+ const chords=[[0,2,4],[3,5,7],[4,6,8],[0,2,4]];
+ for(let b=0;b<bars;b+=4)chords[(b/4)%4].forEach(d=>note('sawtooth',F(d,0),t0+b*4*beat,4*beat*.98,.028,900));
+ for(let b=0;b<bars*4;b++){const t=t0+b*beat,bar=Math.floor(b/4);if(bar<4)continue;
+  if(b%4===0)hit(t,'dom',.34);else if(b%4===2)hit(t,'dom',.2);
+  if(b%4===1||b%4===3)hit(t+beat*.5,'tak',.1);if(R()<.35)hit(t+beat*.75,'tak',.06);
+  if(b%32===28)for(let k=0;k<8;k++)hit(t+k*beat/8,'tak',.07)}
+ hit(t0+(bars*4-1)*beat,'dom',.5);
+ const pats=[[1,1,2],[2,1,1],[1.5,.5,1,1],[.5,.5,1,2],[1,.5,.5,2],[4],[2,2],[1,1,1,1]];let d=4;
+ for(let bar=2;bar<bars;bar++){let pat=pats[Math.floor(R()*pats.length)];if(bar%4===3)pat=[2,2];let bt=0;
+  pat.forEach((dur,ix)=>{const last=bar%4===3&&ix===pat.length-1;
+   if(last)d=R()<.6?0:4;else{d=Math.max(0,Math.min(13,d+[-2,-1,-1,0,1,1,2,3][Math.floor(R()*8)]));if(bar>=bars/2&&R()<.3)d=Math.min(13,d+2)}
+   let st=t0+(bar*4+bt)*beat;if(dur>=1&&R()<.5){note('sawtooth',F(Math.min(13,d+1),1),st,beat*.12,.05,2600,false);st+=beat*.12}
+   note('sawtooth',F(d,1),st,dur*beat*.95,.1,2400,true);if(bar>=bars/2)note('triangle',F(d,2),st,dur*beat*.9,.03,3000,true);bt+=dur})}
+ note('sawtooth',F(0,0),t0+(bars*4-2)*beat,2*beat+.5,.08,1200);note('sawtooth',F(4,0),t0+(bars*4-2)*beat,2*beat+.5,.05,1200);
+ MU.end=t0+total+1;return true;
+}
+function mPlay(i){
+ if(!MU.list.length)return;MU.i=((i%MU.list.length)+MU.list.length)%MU.list.length;mClear();const it=MU.list[MU.i];
+ try{localStorage.setItem('worldMayorMusic','on')}catch{}
+ if(it.k==='gen'){if(!mGen(it.g)){mUI();return}const C=MU.ctx;if(C.state==='suspended')C.resume()}
+ else{const a=new Audio(it.u);a.volume=MU.vol;a.onended=()=>mNext();a.onerror=()=>{if(MU.on)mNext()};MU.audio=a;a.play().catch(()=>{})}
+ MU.on=true;clearInterval(MU.tick);MU.tick=setInterval(()=>{if(MU.on&&it.k==='gen'&&MU.ctx&&MU.ctx.state==='running'&&MU.ctx.currentTime>MU.end)mNext()},500);mUI();
+}
+function mNext(){mPlay(MU.i+1)}
+function mPrev(){mPlay(MU.i-1)}
+function mToggle(){
+ if(MU.on){MU.on=false;try{localStorage.setItem('worldMayorMusic','off')}catch{}
+  if(MU.audio)MU.audio.pause();else if(MU.ctx)MU.ctx.suspend();mUI()}
+ else{if(!MU.bus&&!MU.audio)mPlay(MU.i);else{MU.on=true;try{localStorage.setItem('worldMayorMusic','on')}catch{}if(MU.audio)MU.audio.play().catch(()=>{});else if(MU.ctx)MU.ctx.resume();mUI()}}
+}
+function mVol(v){MU.vol=Math.max(0,Math.min(1,v/100));if(MU.mg)MU.mg.gain.value=MU.vol;if(MU.audio)MU.audio.volume=MU.vol}
+function mFiles(inp){Array.from(inp.files||[]).forEach(f=>{if(/^audio\//.test(f.type))MU.list.push({n:f.name.slice(0,60),k:'file',u:URL.createObjectURL(f)})});inp.value='';mUI()}
+function toggleMusic(){$('musicBox').classList.toggle('hidden');mUI()}
+function mUI(){
+ const nm=$('musicName');if(nm)nm.textContent=(MU.on?'▶ ':'⏸ ')+(MU.list[MU.i]?MU.list[MU.i].n:'');
+ const pb=$('musicPlay');if(pb)pb.textContent=MU.on?'⏸':'▶';
+ const ls=$('musicList');if(ls)ls.innerHTML=MU.list.map((t,i)=>`<button class="mi ${i===MU.i?'on':''}" onclick="mPlay(${i})">${i===MU.i&&MU.on?'🔊':'🎵'} ${esc(t.n)}</button>`).join('');
+}
+function musicAuto(){let p='on';try{p=localStorage.getItem('worldMayorMusic')||'on'}catch{}if(p!=='off'&&!MU.on&&!MU.bus&&!MU.audio)mPlay(MU.i)}
+
+/* ---------- wrap existing functions (they are called by name everywhere) ---------- */
+const _render=render;render=function(){_render();try{warRender()}catch(e){console.error(e)}};
+const _startGame=startGame;startGame=function(m){_startGame(m);try{checkRes();showPage('city');musicAuto()}catch(e){console.error(e)}};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeWar();$('musicBox').classList.add('hidden')}});
+
+/* =====================================================================
+   Supabase: accounts + cloud save  (additional layer; the game itself and
+   the localStorage save "worldMayorSave" work exactly as before)
+   - Only the PUBLISHABLE key is used here. Access is protected by RLS.
+   - Passwords are never stored: they go straight to Supabase Auth.
+   - Sync metadata (no secrets) lives in its own key "worldMayorSyncMeta".
+   ===================================================================== */
+const SB_URL='https://xhyuinqforbxfyqihygc.supabase.co';
+const SB_KEY='sb_publishable_8Nei3q8-ruQeWqOqKl2yUw_CDG9VvBN';
+const SB_TABLE='world_mayor_saves', SB_SLOT='main', CLOUD_VERSION=3;
+const META_KEY='worldMayorSyncMeta', BACKUP_KEY='worldMayorSaveBackup', CLOUD_BACKUP_KEY='worldMayorCloudBackup';
+let sb=null,user=null,saving=false,loadingCloud=false,pendingAgain=false,syncPaused=false,syncStarting=false,manualLogout=false,authBusy=false;
+let saveTimer=null,retryTimer=null,retryCount=0;
+function loadMeta(){try{const m=JSON.parse(localStorage.getItem(META_KEY)||'null');if(m&&typeof m==='object')return{uid:typeof m.uid==='string'?m.uid:null,cloudAt:typeof m.cloudAt==='string'?m.cloudAt:null,dirty:!!m.dirty,localAt:Number(m.localAt)||0}}catch{}return{uid:null,cloudAt:null,dirty:false,localAt:0}}
+let meta=loadMeta();
+function saveMeta(){try{localStorage.setItem(META_KEY,JSON.stringify(meta))}catch{}}
+function resetMeta(){meta={uid:null,cloudAt:null,dirty:false,localAt:0};saveMeta()}
+// Called after every real player action (build, end turn, settings, restart). Never called by sync itself -> no loops.
+function progressSaved(){meta.dirty=true;meta.localAt=Date.now();saveMeta();scheduleCloudSave()}
+
+/* ---- small helpers ---- */
+const snapshot=()=>JSON.parse(JSON.stringify(s));
+const SAVE_KEYS=['cash','pop','happy','fame','turn','homes','parks','factories','plants','shops','roads','mayor'];
+function statesEqual(a,b){return SAVE_KEYS.every(k=>a[k]===b[k])&&canon(a.w||0)===canon(b.w||0)}
+function isFresh(st){const d=defaults();return ['cash','pop','happy','fame','turn'].every(k=>st[k]===d[k])&&['homes','parks','factories','plants','shops','roads'].every(k=>st[k]===0)}
+function sameTime(a,b){return !!a&&!!b&&(a===b||Date.parse(a)===Date.parse(b))}
+function parseSaveData(d){if(typeof d==='string'){try{d=JSON.parse(d)}catch{return null}}return d&&typeof d==='object'?d:null}
+function fmtDate(v){try{return new Date(v).toLocaleString('fa-IR')}catch{return''}}
+function describe(st){const b=['homes','parks','factories','plants','shops','roads'].reduce((n,k)=>n+(st[k]||0),0);return['نوبت '+fmt(st.turn),'جمعیت '+fmt(st.pop),'خزانه '+fmt(st.cash)+' $','شهرت '+fmt(st.fame),'ساختمان‌ها '+fmt(b)]}
+
+/* ---- status UI (Persian) ---- */
+function say(msg,type){document.querySelectorAll('.js-msg').forEach(e=>{e.textContent=msg||''});document.querySelectorAll('.js-msgbox').forEach(e=>{e.className='notice accmsg js-msgbox '+(type||'')})}
+function setSync(kind,text,msg,type){const c={good:'good',busy:'ok',warn:'ok',bad:'bad',idle:'idle'}[kind]||'idle';document.querySelectorAll('.js-sync-chip').forEach(e=>{e.className='chip '+c+' js-sync-chip';e.textContent=text});if(msg!==undefined)say(msg,type)}
+function busyUI(){document.querySelectorAll('.js-cloud-btn').forEach(b=>{b.disabled=!user||saving||loadingCloud})}
+function updateAccUI(){
+ const on=!!user;
+ $('accGuest').classList.toggle('hidden',on);$('accUser').classList.toggle('hidden',!on);
+ $('accEmailShown').textContent=on?(user.email||''):'';
+ document.querySelectorAll('.js-email').forEach(e=>{e.textContent=on?(user.email||''):''});
+ document.querySelectorAll('.js-acc-chip').forEach(e=>{e.className='chip '+(on?'good':'idle')+' js-acc-chip';e.textContent=on?'متصل':(sb?'وارد نشده‌اید':'ابر در دسترس نیست')});
+ $('btnGoLogin').classList.toggle('hidden',on);
+ $('btnRetrySdk').classList.toggle('hidden',!!sb);
+ busyUI();
+}
+function goAccount(){backHome();const p=$('accountPanel');if(p&&p.scrollIntoView)p.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>{const e=$('accEmail');if(e&&!user)e.focus()},350)}
+
+/* ---- error handling ---- */
+function classify(e){
+ const m=String((e&&e.message)||e||''),c=e&&e.code,st=e&&e.status;
+ if(!navigator.onLine||e instanceof TypeError||(!c&&/failed to fetch|networkerror|network request|load failed|fetch/i.test(m)))return'network';
+ if(st===401||c==='PGRST301'||c==='PGRST303'||/jwt|not authenticated|invalid refresh|refresh token/i.test(m))return'auth';
+ if(c==='42501'||st===403)return'rls';
+ if(c==='42P10')return'unique';
+ if(c==='42P01'||c==='PGRST205')return'table';
+ if(c==='PGRST204'||c==='42703')return'column';
+ return'other';
+}
+const ERR_FA={
+ network:'ارتباط با سرور برقرار نشد؛ اینترنت را بررسی کنید. پیشرفت شما روی این دستگاه محفوظ است.',
+ auth:'نشست شما منقضی شده است؛ دوباره وارد شوید.',
+ rls:'دسترسی به جدول ذخیره مجاز نیست (سیاست‌های RLS را بررسی کنید؛ فایل SQL راهنما را اجرا کنید).',
+ unique:'جدول ذخیره به محدودیت یکتا روی (user_id, save_slot) نیاز دارد؛ فایل SQL راهنما را اجرا کنید.',
+ table:'جدول world_mayor_saves در پایگاه‌داده پیدا نشد.',
+ column:'ساختار جدول با بازی هم‌خوان نیست (ستون‌های id, user_id, save_slot, game_version, save_data, created_at, updated_at لازم است).',
+ other:'خطای ناشناخته در ارتباط با ابر رخ داد.'
+};
+function authErrFa(e){
+ const m=String((e&&e.message)||''),k=classify(e);
+ if(k==='network')return ERR_FA.network;
+ if(/invalid login credentials/i.test(m))return'ایمیل یا رمز عبور نادرست است.';
+ if(/email not confirmed/i.test(m))return'ایمیل شما هنوز تأیید نشده است؛ لینک ارسال‌شده به ایمیل را باز کنید.';
+ if(/already (been )?registered|user already/i.test(m))return'این ایمیل قبلاً ثبت شده است؛ از دکمه ورود استفاده کنید.';
+ if(/password.*(at least|short|weak)|weak password/i.test(m))return'رمز عبور ضعیف است (حداقل ۶ نویسه).';
+ if(/rate limit|too many|security purposes/i.test(m))return'تعداد تلاش‌ها زیاد است؛ کمی صبر کنید و دوباره تلاش کنید.';
+ if(/invalid.*email|email.*invalid/i.test(m))return'ایمیل معتبر نیست.';
+ if(/signups? (not allowed|.*disabled)|disabled/i.test(m))return'ثبت‌نام در این سرویس غیرفعال است.';
+ return'خطای ورود/ثبت‌نام رخ داد. دوباره تلاش کنید.';
+}
+async function tryRefresh(){
+ try{const r=await sb.auth.refreshSession();if(!r.error&&r.data&&r.data.session){user=r.data.session.user;return true}}catch{}
+ return false;
+}
+function expireSession(){
+ user=null;syncStarting=false;syncPaused=false;clearTimeout(saveTimer);clearTimeout(retryTimer);
+ updateAccUI();setSync('bad','نشست منقضی شد',ERR_FA.auth,'err');
+}
+// Returns true when the caller may retry the request (session was refreshed).
+async function onCloudError(e,ctx,opt){
+ console.warn('[cloud:'+ctx+']',e);
+ const k=classify(e);
+ if(k==='auth'){
+  if(!(opt&&opt.retried)&&await tryRefresh())return true;
+  expireSession();return false;
+ }
+ if(k==='network'){
+  setSync(navigator.onLine?'bad':'warn',navigator.onLine?(ctx==='save'?'ذخیره ناموفق بود':'خطا در ارتباط'):'آفلاین',ERR_FA.network,'err');
+  if(ctx==='save'&&user&&meta.dirty&&retryCount<3){clearTimeout(retryTimer);const wait=[10000,30000,60000][retryCount++];retryTimer=setTimeout(()=>cloudSave(),wait)}
+  return false;
+ }
+ setSync('bad',ctx==='save'?'ذخیره ناموفق بود':'بارگذاری ناموفق بود',ERR_FA[k]||ERR_FA.other,'err');
+ return false;
+}
+
+/* ---- cloud I/O (table: world_mayor_saves) ---- */
+async function fetchCloud(){
+ try{
+  const {data,error}=await sb.from(SB_TABLE).select('id,user_id,save_slot,game_version,save_data,updated_at')
+   .eq('user_id',user.id).eq('save_slot',SB_SLOT).order('updated_at',{ascending:false}).limit(1);
+  if(error)return{error};
+  const row=data&&data[0]?data[0]:null;
+  if(row){const sd=parseSaveData(row.save_data);if(!sd)return{error:{message:'invalid save_data'}};row.save_data=sd}
+  return{row};
+ }catch(e){return{error:e}}
+}
+function scheduleCloudSave(delay){
+ if(!sb||!user||syncPaused)return;
+ clearTimeout(saveTimer);saveTimer=setTimeout(()=>cloudSave(),delay||1200);
+}
+async function cloudSave(opt){
+ opt=opt||{};
+ clearTimeout(saveTimer);
+ if(!sb||!user){if(opt.manual)setSync('idle','وارد نشده‌اید','برای ذخیره در ابر ابتدا وارد حساب شوید.','err');return}
+ if(syncPaused&&!opt.force&&!opt.manual)return;
+ if(!navigator.onLine){setSync('warn','آفلاین','آفلاین هستید؛ پیشرفت روی این دستگاه ذخیره شد و پس از اتصال همگام می‌شود.','info');return}
+ if(saving||loadingCloud){pendingAgain=true;return}
+ saving=true;busyUI();
+ let conflictRow=null,retryAuth=false;
+ try{
+  setSync('busy','در حال ذخیره...','');
+  const snap=snapshot(),snapStr=JSON.stringify(snap);
+  if(!opt.force){
+   // Optimistic check: never overwrite a cloud save that changed since we last synced (e.g. another device).
+   const r=await fetchCloud();
+   if(r.error)throw r.error;
+   if(r.row&&(meta.uid!==user.id||!sameTime(meta.cloudAt,r.row.updated_at))&&!statesEqual(normalizeSave(r.row.save_data),snap))conflictRow=r.row;
+   else if(r.row&&statesEqual(normalizeSave(r.row.save_data),snap)){meta.uid=user.id;meta.cloudAt=r.row.updated_at;meta.dirty=false;saveMeta();setSync('good','همگام',opt.manual?'ذخیره ابری از قبل با این دستگاه یکسان است.':'','ok');return}
+  }
+  if(!conflictRow){
+   const payload={user_id:user.id,save_slot:SB_SLOT,game_version:CLOUD_VERSION,save_data:snap,updated_at:new Date().toISOString()};
+   const up=()=>sb.from(SB_TABLE).upsert(payload,{onConflict:'user_id,save_slot'}).select('updated_at').single();
+   let res=await up();
+   if(res.error&&res.error.code==='22P02'){payload.game_version='2.3';res=await up()}   // game_version column may be text
+   if(res.error)throw res.error;
+   meta.uid=user.id;meta.cloudAt=res.data.updated_at;
+   if(JSON.stringify(snapshot())===snapStr)meta.dirty=false;else pendingAgain=true;
+   saveMeta();retryCount=0;
+   setSync('good','با موفقیت ذخیره شد',opt.manual?'ذخیره در ابر با موفقیت انجام شد ✓':'','ok');
+  }
+ }catch(e){
+  retryAuth=await onCloudError(e,'save',opt);
+ }finally{saving=false;busyUI()}
+ if(conflictRow)return showConflict(conflictRow);
+ if(retryAuth)return cloudSave({...opt,retried:true});
+ if(pendingAgain){pendingAgain=false;if(meta.dirty)scheduleCloudSave(300)}
+}
+function applyCloud(row,msg){
+ const local=snapshot();
+ if(!isFresh(local)){try{localStorage.setItem(BACKUP_KEY,JSON.stringify({at:Date.now(),save:local}))}catch{}}   // local progress is never lost
+ s=normalizeSave(row.save_data);save();
+ meta={uid:user.id,cloudAt:row.updated_at,dirty:false,localAt:Date.parse(row.updated_at)||Date.now()};saveMeta();
+ syncPaused=false;
+ const mn=$('mayorName');if(mn)mn.value=s.mayor;
+ render();
+ setSync('good','ذخیره ابری با موفقیت بارگذاری شد',msg||'ذخیره ابری با موفقیت بارگذاری شد ✓','ok');
+}
+async function cloudSaveManual(){
+ if(!user){say('برای ذخیره در ابر ابتدا وارد حساب شوید.','err');return}
+ syncPaused=false;retryCount=0;
+ await cloudSave({manual:true});
+}
+async function cloudLoadManual(opt){
+ if(!user){say('برای بارگذاری از ابر ابتدا وارد حساب شوید.','err');return}
+ if(saving||loadingCloud){say('لطفاً چند لحظه صبر کنید...','info');return}
+ syncPaused=false;
+ loadingCloud=true;busyUI();setSync('busy','در حال بارگذاری ذخیره ابری...','');
+ let r,again=false;
+ try{r=await fetchCloud()}finally{loadingCloud=false;busyUI()}
+ if(r.error){again=await onCloudError(r.error,'load',opt);if(again)return cloudLoadManual({retried:true});return}
+ if(!r.row){setSync('good','متصل','ذخیره‌ای در ابر پیدا نشد. ذخیره این دستگاه سالم است؛ با «ذخیره در ابر» آن را بالا ببرید.','info');return}
+ const local=snapshot(),cloud=normalizeSave(r.row.save_data);
+ if(statesEqual(local,cloud)){meta.uid=user.id;meta.cloudAt=r.row.updated_at;meta.dirty=false;saveMeta();setSync('good','همگام','ذخیره این دستگاه و ابر یکسان است.','ok');return}
+ if(isFresh(local)){applyCloud(r.row);return}
+ // explicit warning: loading would replace progress on this device
+ showModal({
+  title:'بارگذاری ذخیره ابری',
+  text:'با بارگذاری ذخیره ابری، پیشرفت فعلی این دستگاه جایگزین می‌شود. یک نسخه پشتیبان از ذخیره فعلی در همین مرورگر نگه‌داری می‌شود. ادامه می‌دهید؟',
+  local,cloud,cloudAt:r.row.updated_at,
+  actions:[
+   {label:'بله، ذخیره ابری را بارگذاری کن',fn:()=>{closeModal();applyCloud(r.row)}},
+   {label:'انصراف (ذخیره این دستگاه دست‌نخورده می‌ماند)',cls:'secondary',fn:()=>{closeModal();setSync('good','متصل','بارگذاری لغو شد.','info')}}
+  ]});
+}
+
+/* ---- conflict dialog ---- */
+function mcol(title,st,when){
+ const c=document.createElement('div');c.className='mcol';
+ const b=document.createElement('b');b.textContent=title;c.appendChild(b);
+ describe(st).forEach(t=>{const d=document.createElement('div');d.textContent=t;c.appendChild(d)});
+ if(when){const d=document.createElement('div');d.className='muted';d.textContent='آخرین تغییر: '+when;c.appendChild(d)}
+ return c;
+}
+function showModal(o){
+ $('mTitle').textContent=o.title;$('mText').textContent=o.text;
+ const cmp=$('mCompare');cmp.textContent='';
+ if(o.local&&o.cloud){cmp.appendChild(mcol('📱 این دستگاه',o.local,meta.localAt?fmtDate(meta.localAt):''));cmp.appendChild(mcol('☁️ ابر',o.cloud,o.cloudAt?fmtDate(o.cloudAt):''))}
+ const act=$('mActions');act.textContent='';
+ o.actions.forEach(a=>{const b=document.createElement('button');b.type='button';b.textContent=a.label;if(a.cls)b.className=a.cls;b.onclick=a.fn;act.appendChild(b)});
+ o.onEsc=o.onEsc||null;showModal.esc=o.onEsc;
+ $('syncModal').classList.remove('hidden');
+ const f=act.querySelector('button');if(f)f.focus();
+}
+function closeModal(){$('syncModal').classList.add('hidden');showModal.esc=null}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('syncModal').classList.contains('hidden')&&showModal.esc)showModal.esc()});
+function showConflict(row,extraText){
+ syncPaused=true;
+ const local=snapshot(),cloud=normalizeSave(row.save_data);
+ const later=()=>{closeModal();setSync('warn','همگام‌سازی متوقف است','همگام‌سازی خودکار تا تصمیم شما متوقف است. برای ادامه «ذخیره در ابر» یا «بارگذاری از ابر» را بزنید.','info')};
+ setSync('warn','در انتظار تصمیم شما','ذخیره این دستگاه با ذخیره ابری تفاوت دارد؛ یکی را انتخاب کنید.','info');
+ const more=cloud.turn>local.turn?'ذخیره ابری پیشرفته‌تر است (نوبت بیشتر).':cloud.turn<local.turn?'ذخیره این دستگاه پیشرفته‌تر است (نوبت بیشتر).':'';
+ showModal({
+  title:'ذخیره این دستگاه با ابر تفاوت دارد',
+  text:(extraText||'پیشرفت این دستگاه و ذخیره ابری شما یکسان نیست (احتمالاً روی دستگاه دیگری بازی کرده‌اید).')+' '+more+' هیچ‌چیز بدون تأیید شما جایگزین نمی‌شود.',
+  local,cloud,cloudAt:row.updated_at,onEsc:later,
+  actions:[
+   {label:'استفاده از ذخیره ابری (ذخیره این دستگاه جایگزین می‌شود)',fn:()=>{closeModal();applyCloud(row)}},
+   {label:'نگه‌داشتن این دستگاه و جایگزینی ذخیره ابر',cls:'danger',fn:()=>{
+     closeModal();
+     try{localStorage.setItem(CLOUD_BACKUP_KEY,JSON.stringify({at:Date.now(),save:cloud}))}catch{}
+     meta.uid=user.id;meta.cloudAt=row.updated_at;saveMeta();syncPaused=false;cloudSave({manual:true,force:true})}},
+   {label:'فعلاً تصمیمی نمی‌گیرم',cls:'secondary',fn:later}
+  ]});
+}
+
+/* ---- sync on login / session restore ---- */
+async function startSync(){
+ if(!sb||!user||syncStarting)return;
+ syncStarting=true;syncPaused=false;
+ try{
+  setSync('busy','در حال بررسی ذخیره ابری...','');
+  let r=await fetchCloud();
+  if(r.error&&await onCloudError(r.error,'load',{}))r=await fetchCloud();
+  if(r.error)return;
+  const row=r.row,local=snapshot(),fresh=isFresh(local),sameOwner=meta.uid===user.id;
+  if(!row){
+   if(fresh){meta.uid=user.id;meta.cloudAt=null;saveMeta();setSync('good','متصل','متصل شدید. هنوز ذخیره ابری ندارید؛ با اولین اقدام شما ساخته می‌شود.','ok');return}
+   if(meta.uid&&!sameOwner){
+    syncPaused=true;
+    showModal({title:'شهر این دستگاه متعلق به حساب دیگری بود',text:'ذخیره فعلی این دستگاه قبلاً با حساب دیگری همگام شده بود و حساب فعلی شما ذخیره ابری ندارد. می‌خواهید این شهر را به این حساب منتقل کنید؟',local,onEsc:null,actions:[
+     {label:'بله، ذخیره این دستگاه را در حساب فعلی ذخیره کن',fn:()=>{closeModal();syncPaused=false;cloudSave({manual:true,force:true})}},
+     {label:'نه، شهر جدید شروع شود (نسخه پشتیبان محلی نگه‌داری می‌شود)',cls:'danger',fn:()=>{closeModal();try{localStorage.setItem(BACKUP_KEY,JSON.stringify({at:Date.now(),save:local}))}catch{}s=defaults();save();meta={uid:user.id,cloudAt:null,dirty:false,localAt:0};saveMeta();syncPaused=false;render();setSync('good','متصل','شهر جدید شروع شد.','ok')}},
+     {label:'فعلاً تصمیمی نمی‌گیرم',cls:'secondary',fn:()=>{closeModal();setSync('warn','همگام‌سازی متوقف است','')}}
+    ]});
+    setSync('warn','در انتظار تصمیم شما','');
+    return;
+   }
+   await cloudSave({manual:true,force:true});    // first upload of the local city (nothing in the cloud to overwrite)
+   return;
+  }
+  const cloud=normalizeSave(row.save_data);
+  if(statesEqual(local,cloud)){meta={uid:user.id,cloudAt:row.updated_at,dirty:false,localAt:meta.localAt};saveMeta();setSync('good','همگام','متصل و همگام ✓','ok');return}
+  if(fresh){applyCloud(row,'ذخیره ابری شما بارگذاری شد ✓');return}
+  // local has no unsynced progress and the cloud moved on (other device) -> safe to take the cloud copy
+  if(sameOwner&&!meta.dirty&&meta.cloudAt&&!sameTime(meta.cloudAt,row.updated_at)){applyCloud(row,'ذخیره جدیدتر ابر (از دستگاه دیگر) بارگذاری شد ✓');return}
+  showConflict(row);
+ }finally{syncStarting=false}
+}
+
+/* ---- auth ---- */
+function readAuth(){
+ const email=$('accEmail').value.trim(),pass=$('accPass').value;
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){say('ایمیل معتبر وارد کنید.','err');return null}
+ if(pass.length<6){say('رمز عبور باید حداقل ۶ نویسه باشد.','err');return null}
+ return{email,pass};
+}
+function authBtns(b){authBusy=b;['btnLogin','btnRegister'].forEach(id=>{$(id).disabled=b})}
+function noCloud(){say('اتصال به سرویس ابری ممکن نیست (اینترنت یا بارگذاری کتابخانه). بازی با ذخیره محلی ادامه دارد.','err')}
+async function doLogin(ev){
+ if(ev&&ev.preventDefault)ev.preventDefault();
+ if(authBusy)return false;
+ const c=readAuth();if(!c)return false;
+ authBtns(true);say('در حال ورود...','info');
+ if(!sb&&!(await connectCloud())){authBtns(false);noCloud();return false}
+ try{
+  const {data,error}=await sb.auth.signInWithPassword({email:c.email,password:c.pass});
+  if(error)say(authErrFa(error),'err');
+  else{say('ورود با موفقیت انجام شد ✓','ok');$('accPass').value='';if(data&&data.session&&data.session.user)onAuth('SIGNED_IN',data.session)}
+ }catch(e){console.warn(e);say(authErrFa(e),'err')}
+ finally{authBtns(false)}
+ return false;
+}
+async function doRegister(){
+ if(authBusy)return;
+ const c=readAuth();if(!c)return;
+ authBtns(true);say('در حال ثبت‌نام...','info');
+ if(!sb&&!(await connectCloud())){authBtns(false);noCloud();return}
+ try{
+  const opts=/^https?:$/.test(location.protocol)?{emailRedirectTo:location.href.split('#')[0]}:{};
+  const {data,error}=await sb.auth.signUp({email:c.email,password:c.pass,options:opts});
+  if(error)say(authErrFa(error),'err');
+  else if(data&&data.user&&Array.isArray(data.user.identities)&&data.user.identities.length===0)say('این ایمیل قبلاً ثبت شده است؛ از دکمه ورود استفاده کنید.','err');
+  else if(data&&data.session){say('ثبت‌نام با موفقیت انجام شد و وارد شدید ✓','ok');$('accPass').value='';onAuth('SIGNED_IN',data.session)}
+  else{say('ثبت‌نام انجام شد. ایمیل تأیید برای شما ارسال شد؛ لینک آن را باز کنید و سپس وارد شوید.','ok');$('accPass').value=''}
+ }catch(e){console.warn(e);say(authErrFa(e),'err')}
+ finally{authBtns(false)}
+}
+async function doLogout(){
+ if(!sb)return;
+ manualLogout=true;
+ try{
+  if(user&&meta.dirty&&!syncPaused&&navigator.onLine)await cloudSave();      // last flush so nothing is lost
+  const stillDirty=meta.dirty;
+  await sb.auth.signOut({scope:'local'});
+  onAuth('SIGNED_OUT',null);
+  say(stillDirty?'از حساب خارج شدید. تغییرات اخیر فقط روی این دستگاه ذخیره شده‌اند.':'از حساب خارج شدید. ذخیره محلی شما سالم است.','ok');
+ }catch(e){console.warn(e);onAuth('SIGNED_OUT',null);say('از حساب خارج شدید.','ok')}
+ finally{manualLogout=false}
+}
+// Idempotent: safe to be called by onAuthStateChange, getSession and the handlers above.
+function onAuth(evt,session){
+ if(session&&session.user){
+  const isNew=!user||user.id!==session.user.id;
+  user=session.user;updateAccUI();
+  if(isNew)startSync();
+ }else if(user||evt==='SIGNED_OUT'){
+  const was=!!user;
+  user=null;syncStarting=false;syncPaused=false;clearTimeout(saveTimer);clearTimeout(retryTimer);retryCount=0;
+  closeModal();updateAccUI();
+  setSync('idle',navigator.onLine?'وارد نشده‌اید':'آفلاین',(was&&!manualLogout)?ERR_FA.auth:undefined,(was&&!manualLogout)?'err':undefined);
+ }
+}
+/* ---- SDK loading (never blocks the page; several sources) ---- */
+const SDK_SOURCES=['supabase.js','https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2','https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js','https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js'];
+const sdkReady=()=>!!(window.supabase&&window.supabase.createClient);
+function loadScript(url,ms){
+ return new Promise(res=>{
+  const el=document.createElement('script');let done=false,t=null;
+  const fin=ok=>{if(done)return;done=true;clearTimeout(t);if(!ok)el.remove();res(ok)};
+  t=setTimeout(()=>fin(false),ms||12000);
+  el.async=true;el.src=url;el.onload=()=>fin(sdkReady());el.onerror=()=>fin(false);
+  document.head.appendChild(el);
+ });
+}
+async function ensureSdk(){
+ if(sdkReady())return true;
+ for(const u of SDK_SOURCES){if(await loadScript(u))return true}
+ return false;
+}
+let connecting=false;
+async function connectCloud(){
+ if(sb)return true;
+ if(connecting)return false;
+ connecting=true;
+ try{
+  setSync('busy','در حال اتصال به سرویس ابری...','');
+  if(!(await ensureSdk())){
+   setSync('warn','ابر در دسترس نیست','کتابخانه ابری بارگذاری نشد (اینترنت قطع است یا آدرس CDN فیلتر/کند است). بازی با ذخیره محلی کار می‌کند. «تلاش دوباره» یا «بررسی اتصال» را بزنید، یا فایل supabase.js را کنار همین فایل بگذارید.','info');
+   updateAccUI();return false;
+  }
+  try{
+   sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  }catch(e){console.warn(e);sb=null;setSync('bad','ابر در دسترس نیست','راه‌اندازی سرویس ابری ناموفق بود؛ بازی با ذخیره محلی ادامه دارد.','err');updateAccUI();return false}
+  setSync('idle',navigator.onLine?'وارد نشده‌اید':'آفلاین',navigator.onLine?'به سرویس ابری متصل شد؛ وارد حساب شوید.':'آفلاین هستید؛ بازی با ذخیره محلی ادامه دارد.',navigator.onLine?'ok':'info');
+  updateAccUI();
+  sb.auth.onAuthStateChange((evt,session)=>{setTimeout(()=>onAuth(evt,session),0)});   // never await Supabase calls inside this callback
+  sb.auth.getSession().then(({data})=>{if(data&&data.session)onAuth('INITIAL_SESSION',data.session)}).catch(e=>console.warn(e));
+  return true;
+ }finally{connecting=false}
+}
+function retryConnect(){connectCloud()}
+
+/* ---- connection self-test (button "بررسی اتصال"; also callable from the console) ---- */
+async function cloudDiagnose(){
+ say('⏳ در حال بررسی اتصال...','info');
+ const L=[];
+ if(!sdkReady())await ensureSdk();
+ if(sdkReady()&&!sb)await connectCloud();
+ L.push((sdkReady()?'✅':'❌')+' کتابخانه Supabase '+(sdkReady()?'بارگذاری شده است':'بارگذاری نشده است (CDN در دسترس نیست)'));
+ L.push(navigator.onLine?'✅ مرورگر آنلاین است':'❌ مرورگر آفلاین است');
+ const probe=async url=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),10000);try{const r=await fetch(url,{headers:{apikey:SB_KEY},signal:c.signal});return{status:r.status}}catch(e){return{err:e}}finally{clearTimeout(t)}};
+ const a=await probe(SB_URL+'/auth/v1/health');
+ L.push(a.err?'❌ دسترسی به سرور Supabase ممکن نیست (اینترنت، فیلترینگ یا VPN را بررسی کنید)':(a.status===200?'✅ سرور احراز هویت Supabase پاسخ می‌دهد':'⚠️ سرور Supabase پاسخ داد اما با کد '+a.status+' (آدرس پروژه/کلید را بررسی کنید)'));
+ if(!a.err){
+  const r=await probe(SB_URL+'/rest/v1/'+SB_TABLE+'?select=id&limit=1');
+  if(r.err)L.push('❌ خواندن جدول ناموفق بود');
+  else if(r.status===404)L.push('❌ جدول '+SB_TABLE+' پیدا نشد');
+  else if(r.status===401||r.status===403)L.push('✅ جدول '+SB_TABLE+' وجود دارد و بدون ورود بسته است (درست و امن)');
+  else L.push('⚠️ جدول با کد '+r.status+' پاسخ داد (اگر بدون ورود داده می‌دهد، RLS را بررسی کنید)');
+ }
+ L.push(user?'✅ وارد شده‌اید: '+(user.email||''):'ℹ️ وارد حساب نشده‌اید');
+ if(sb&&user){
+  const x=await fetchCloud();
+  L.push(x.error?'❌ خواندن ذخیره ابری ناموفق بود: '+(ERR_FA[classify(x.error)]||ERR_FA.other):(x.row?'✅ ذخیره ابری شما پیدا شد (نوبت '+fmt(normalizeSave(x.row.save_data).turn)+')':'ℹ️ هنوز ذخیره ابری ندارید (با اولین ذخیره ساخته می‌شود)'));
+ }
+ say(L.join('\n'),L.some(l=>l.startsWith('❌'))?'err':'ok');
+}
+
+function initCloud(){
+ updateAccUI();
+ window.addEventListener('online',()=>{
+  if(!sb){connectCloud();return}
+  if(!user){setSync('idle','وارد نشده‌اید','');return}
+  retryCount=0;
+  if(meta.dirty&&!syncPaused){setSync('busy','در حال ذخیره...','دوباره آنلاین شدید؛ همگام‌سازی...','info');cloudSave()}
+  else setSync('good',syncPaused?'همگام‌سازی متوقف است':'متصل','دوباره آنلاین شدید.','ok');
+ });
+ window.addEventListener('offline',()=>setSync('warn','آفلاین','آفلاین هستید؛ بازی با ذخیره محلی ادامه دارد و بعداً همگام می‌شود.','info'));
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&user&&meta.dirty&&!syncPaused&&!saving)cloudSave()});
+ // start loading the SDK after the page has loaded (or after 2.5 s at most) so a slow/blocked CDN can never delay the game itself
+ let started=false;const go=()=>{if(!started){started=true;connectCloud()}};
+ if(document.readyState==='complete')go();else{window.addEventListener('load',go);setTimeout(go,2500)}
+}
+
+save();render();initCloud();
+</script></body></html>
